@@ -23,14 +23,15 @@ Inspect the scene, write the brief, build, look, fix, check, export, then verify
 
 ### Bridge
 
-- Use [MCP for Blender](https://github.com/ahujasid/mcp-for-blender), which works with our Blender 4.3, with telemetry off and safe mode on:
+Use [MCP for Blender](https://github.com/ahujasid/mcp-for-blender), which works with our Blender 4.3, with telemetry off and safe mode on:
 
-  ```bash
-  claude mcp add blender -e DISABLE_TELEMETRY=true -e BLENDER_MCP_SAFE_MODE=1 -- uvx mcp-for-blender
-  uvx mcp-for-blender install-addon
-  ```
+```bash
+claude mcp add blender -e DISABLE_TELEMETRY=true -e BLENDER_MCP_SAFE_MODE=1 -- uvx mcp-for-blender
+uvx mcp-for-blender install-addon
+```
 
-  Then press `N` in Blender's 3D viewport, open the MCP for Blender tab, and start the server if it is not running.
+Then press `N` in Blender's 3D viewport, open the MCP for Blender tab, and start the server if it is not running.
+
 - The official [Blender Lab MCP](https://www.blender.org/lab/mcp-server/), also offered as Anthropic's Claude Blender connector, is the alternative once we move to Blender 5.1 or newer.
 - Use one bridge per project.
 
