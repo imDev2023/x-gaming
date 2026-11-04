@@ -2,6 +2,7 @@
 
 Ideas, X posts and GitHub repos for building games, especially blockchain games.
 Each source is read in full, checked against what it claims, and judged on whether we could use it.
+Next steps are tracked in [Issues](https://github.com/imDev2023/x-gaming/issues).
 
 ## Sources
 

@@ -44,7 +44,7 @@ The demo video in the post was recorded by Claude playing the game, which is why
 
 ## What I checked
 
-Tested in Chrome on this Mac on 2026-11-04.
+Tested in Chrome on a Mac on 2026-11-04.
 
 - It loads and plays.
   The boot screen took about 67 s and 55 MB of downloads on this connection before the title screen appeared.
@@ -54,6 +54,7 @@ Tested in Chrome on this Mac on 2026-11-04.
 - The published build is 122 MB in 151 files, and 100 MB of that is 26 GLB models.
   It ships a Draco decoder, yet single models still reach 12 to 14 MB.
   One of the largest files is `test_rocks.glb`, which looks like a leftover test asset.
+  The full file list with sizes is in [data/2026-11-04-sumiro-build-files.tsv](data/2026-11-04-sumiro-build-files.tsv).
 - Controls are keyboard only, with no touch support.
 
 Replies were mostly praise and unanswered cost questions.
@@ -121,3 +122,4 @@ What the workflow does not cover:
 
 Install Video2Game, pick one concept with a clear on-chain hook, and build a single-level game for roughly 5 to 15 USD of fal calls (needs approval).
 Then measure load size and mobile play, and add wallet connect plus a testnet contract.
+Tracked in [issue #1](https://github.com/imDev2023/x-gaming/issues/1).
