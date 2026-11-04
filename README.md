@@ -6,9 +6,10 @@ Next steps are tracked in [Issues](https://github.com/imDev2023/x-gaming/issues)
 
 ## Sources
 
-| Date | Source | What it is | Verdict |
-|---|---|---|---|
-| 2026-11-04 | [@xikhar: Sumiro](sources/2026-11-04-xikhar-sumiro.md) | A 3D ink-wash platformer built in 24 hours with Claude Code, Flux, GPT Image, Tripo, Blender and Three.js | Possible and feasible for the game client; the blockchain side is not covered |
+Newest first.
+
+- **2026-11-04**: [Sumiro](sources/2026-11-04-xikhar-sumiro.md) by [@xikhar](https://x.com/xikhar/status/2117776295534997818), a 3D ink-wash platformer built in 24 hours with Claude Code, Flux, GPT Image, Tripo, Blender and Three.js.
+  - Verdict: possible, and feasible for the game client; the blockchain side is not covered.
 
 ## Reusable tools found so far
 

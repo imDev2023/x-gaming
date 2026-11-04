@@ -1,12 +1,10 @@
 # Sumiro: "a full original game in 24 hours using AI"
 
-| | |
-|---|---|
-| Source | [x.com/xikhar/status/2117776295534997818](https://x.com/xikhar/status/2117776295534997818) |
-| Author | Shikhar ([@xikhar](https://x.com/xikhar), [github.com/xikhar](https://github.com/xikhar)) |
-| Posted | 2026-11-04, a 7-post thread, about 86K views when read |
-| Play it | [xikhar.github.io/sumiro](https://xikhar.github.io/sumiro/) |
-| Read on | 2026-11-04 |
+- **Source:** [x.com/xikhar/status/2117776295534997818](https://x.com/xikhar/status/2117776295534997818)
+- **Author:** Shikhar ([@xikhar](https://x.com/xikhar), [github.com/xikhar](https://github.com/xikhar))
+- **Posted:** 2026-11-04, a 7-post thread, about 86K views when read
+- **Play it:** [xikhar.github.io/sumiro](https://xikhar.github.io/sumiro/)
+- **Read on:** 2026-11-04
 
 ## Verdict
 
