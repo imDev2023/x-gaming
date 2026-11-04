@@ -7,7 +7,8 @@ The owner collects ideas here for building games, specifically blockchain games:
 - Open X links with Claude in Chrome (the owner's logged-in Chrome profile), as the owner asked on 2026-11-04.
   Read the whole thread, the author's own replies and every linked repo or demo.
 - Check claims instead of repeating them: play the demo, inspect the repo, and measure what can be measured (load size, fps, cost).
-- Write one note per source at `sources/YYYY-MM-DD-<author>-<slug>.md`, with the same sections as the existing notes: verdict, the process, what the post leaves out, what was checked, reusable pieces, feasibility for us, blockchain fit, next step.
+- Write one note per source at `sources/YYYY-MM-DD-<author>-<slug>.md`, where the date is the day the source was added, with the same sections as the existing notes: verdict, what the source says, what it leaves out, what was checked, what helps us, blockchain fit, next step.
+- When a source improves how we build, merge the change into `WORKFLOW.md` and cite the note.
 - Add one entry at the top of the Sources list in `README.md` (date, linked title, author, one-line description, verdict), and any new reusable tool to its list.
 - Save every note to the public repo, github.com/imDev2023/x-gaming, by committing and pushing to `main`, as the owner asked on 2026-11-04.
 - Because the repo is public, paraphrase posts and link to them instead of copying their text, and never commit screenshots of other people's work, keys or anything private.
