@@ -67,11 +67,20 @@ Do not stop until every done check passes.
 ### Done checks
 
 - Measured bounds and triangle count match the brief.
-- A person has looked at one multi-angle view.
+- A person has looked at one multi-angle view, checking shape and proportion; color is judged later, in the engine.
+- No two faces are coplanar, since overlapping parts flicker in the engine (z-fighting). ([calibration 1](calibration/2026-11-05-crate/README.md))
 - `npx @gltf-transform/cli validate <file>` reports zero errors, and `inspect` matches the brief.
-- The GLB loads in our Three.js scene at the right scale, origin and orientation.
+- Materials on closed meshes are single-sided: turn on backface culling in Blender, or the GLB exports `doubleSided: true`. ([calibration 1](calibration/2026-11-05-crate/README.md))
+- The GLB loads in our Three.js scene at the right scale, origin and orientation, and its colors read as briefed under the game's lighting.
 - Names are clean, with no `Cube.003` and no leftover `.001` objects.
 - `CREDITS.md` lists every pulled or generated asset with its source and licence.
+
+A scripted version of the build, checks, look renders and export, plus a Three.js engine check page, is in [calibration/2026-11-05-crate](calibration/2026-11-05-crate/README.md).
+
+### Engine notes
+
+- Metallic materials render almost black without an environment map, so every game scene sets `scene.environment` from a CC0 Poly Haven HDRI. ([calibration 1](calibration/2026-11-05-crate/README.md))
+- Three.js loads a Blender object with several materials as a group of meshes named `<Name>_1`, `<Name>_2`, so game code finds props by the group name. ([calibration 1](calibration/2026-11-05-crate/README.md))
 
 ### What agents model well
 

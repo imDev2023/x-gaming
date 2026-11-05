@@ -1,0 +1,35 @@
+{
+  "object": "Crate_01",
+  "triangles": 300,
+  "bounds_min_m": [
+    -0.5,
+    -0.5,
+    0.0
+  ],
+  "bounds_max_m": [
+    0.5,
+    0.5,
+    1.0
+  ],
+  "dimensions_m": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "materials": [
+    "Metal_A",
+    "Wood_A"
+  ],
+  "scene_objects": [
+    "Crate_01"
+  ],
+  "checks": {
+    "size": true,
+    "tris": true,
+    "origin_bottom_center": true,
+    "transforms_applied": true,
+    "names_clean": true,
+    "materials": true,
+    "single_sided": true
+  }
+}

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crate_01 engine check</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #1d2024; color: #e8e6e3; font: 14px/1.4 ui-monospace, Menlo, monospace; }
+  canvas { display: block; }
+  #report { position: fixed; left: 12px; top: 12px; margin: 0; padding: 10px 12px; background: rgba(0, 0, 0, 0.55); border-radius: 6px; white-space: pre; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<pre id="report">loading crate_01.glb...</pre>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+
+// A chase camera about 4 m away, as the brief says, next to a 1.8 m stand-in player.
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1d2024);
+// Metallic PBR materials reflect their surroundings and render black without an
+// environment map; a game scene would use a CC0 Poly Haven HDRI here instead.
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.35;
+scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x3a2f25, 0.4));
+const sun = new THREE.DirectionalLight(0xffffff, 1.4);
+sun.position.set(3, 6, 4);
+scene.add(sun);
+scene.add(new THREE.GridHelper(10, 10, 0x8a8f96, 0x41464d)); // 1 m squares
+
+const player = new THREE.Mesh(
+  new THREE.CapsuleGeometry(0.3, 1.2, 4, 12),
+  new THREE.MeshStandardMaterial({ color: 0x4f8fd6, roughness: 0.6 })
+);
+player.position.set(-1.2, 0.9, 0); // 1.2 m body + two 0.3 m caps = 1.8 m tall, so its center sits at 0.9 m
+scene.add(player);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.05, 100);
+camera.position.set(1.6, 2.2, 3.2); // about 4 m from the crate
+camera.lookAt(-0.4, 0.6, 0);
+
+const out = document.getElementById("report");
+new GLTFLoader().load(
+  "crate_01.glb",
+  (gltf) => {
+    const root = gltf.scene;
+    scene.add(root);
+    const box = new THREE.Box3().setFromObject(root);
+    const size = box.getSize(new THREE.Vector3());
+    let tris = 0;
+    const names = [];
+    const materials = new Set();
+    root.traverse((o) => {
+      names.push(o.name || "(unnamed)");
+      if (o.isMesh) {
+        tris += o.geometry.index ? o.geometry.index.count / 3 : o.geometry.attributes.position.count / 3;
+        (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) =>
+          materials.add(`${m.name} ${m.side === THREE.DoubleSide ? "double-sided" : "single-sided"}`)
+        );
+      }
+    });
+    const r = (v) => Math.round(v * 1000) / 1000;
+    const report = {
+      size_m: [r(size.x), r(size.y), r(size.z)],
+      min_y_m: r(box.min.y),
+      center_xz_m: [r((box.min.x + box.max.x) / 2), r((box.min.z + box.max.z) / 2)],
+      triangles: tris,
+      nodes: names,
+      materials: [...materials],
+    };
+    window.__report = report;
+    out.textContent = JSON.stringify(report, null, 1);
+    renderer.render(scene, camera);
+  },
+  undefined,
+  (err) => {
+    window.__report = { error: String(err) };
+    out.textContent = "load failed: " + err;
+  }
+);
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+renderer.setAnimationLoop(() => renderer.render(scene, camera));
+</script>
+</body>
+</html>
