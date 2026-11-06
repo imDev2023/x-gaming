@@ -74,6 +74,8 @@ Every done check passes.
 3. **Printing state, not the look, caught a stray name.**
    `bmesh`'s `loops.layers.uv.verify()` named the UV map `Float2`; the build now names it `UVMap`, and the names check covers UV maps and color attributes.
 
+![Bridge looks: the two defects the live look caught, then the final shape and material](look-sheet.png)
+
 The coplanar check, done by eye in calibration 1, is now a script: it flags pairs of faces that share a plane, face the same way and overlap by more than 1 mm².
 Its self-test flags calibration 1's first build (caps flush with the beams, 2 overlaps) and passes the fix (caps 1 cm proud, 0 overlaps).
 It also counts 20 back-to-back pairs, the 16 rail ends against the posts and the 4 brace backs against the body: hidden contact faces that cannot flicker with backface culling on, about 40 triangles that could go if the budget ever gets tight.
