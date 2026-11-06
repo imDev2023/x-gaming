@@ -13,11 +13,15 @@ The owner collects ideas here for building games, specifically blockchain games:
 - Save every note to the public repo, github.com/imDev2023/x-gaming, by committing and pushing to `main`, as the owner asked on 2026-11-04.
 - Because the repo is public, paraphrase posts and link to them instead of copying their text, and never commit screenshots of other people's work, keys or anything private.
 - Generation calls (fal, OpenAI and the like) are paid and need the owner's approval each time.
+  Afterwards read fal's exact charge with `FAL_BILLING_KEY` (see WORKFLOW.md's Costs) and log that, not the estimate, in the spend ledger.
 
 ## Traps found so far
 
 - Read `WORKFLOW.md` before any asset work: it holds the pipeline, the bridge's launch command, the safe-mode script rules and the done checks.
-  Templates: [one prop](calibration/2026-11-06-crate-bridge/README.md) and [a set of props](calibration/2026-11-06-kit/README.md); the Three.js check page is `calibration/2026-11-05-crate/viewer.html?src=<glb>`, with `src` repeated for a lineup.
+  Templates: [one prop](calibration/2026-11-06-crate-bridge/README.md), [a set of props](calibration/2026-11-06-kit/README.md) and [a whole game](calibration/2026-11-06-video2game/README.md); the Three.js check page is `calibration/2026-11-05-crate/viewer.html?src=<glb>`, with `src` repeated for a lineup.
+- Dockstack's `calibration/2026-11-06-video2game/game/sim.js` is the score a server will replay: keep it integer-only, run `node --test calibration/2026-11-06-video2game/game/` after any change, and load the page with `?debug`, which logs an error if drawing writes into its state.
+- Each calibration's `raw/` folder is gitignored and holds the only copy of its paid fal outputs and full-length takes; never delete it.
+- The Video2Game skill is not installed: calibration 4 ran it from a clone of `lovisdotio/video-to-game` at `d1a24fd`, so reinstall or reclone it before another game run.
 - MCP for Blender is installed at local scope with safe mode on and telemetry off (remove with `claude mcp remove blender -s local`).
   Auto mode refuses to install MCP servers or Blender add-ons, so the owner runs those with `!`, and new tools load only in a later session.
 - Start Blender's GUI for the bridge with `run_in_background` and stop it with TaskStop; it leaves the owner's Blender preferences unchanged.
