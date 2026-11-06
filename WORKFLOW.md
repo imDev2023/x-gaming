@@ -15,7 +15,7 @@ When a new source improves a step, update this file and cite the note.
    - Free CC0 libraries: Poly Haven textures, HDRIs and models, and Poly Pizza models filtered to CC0. ([Claude Code + Blender](sources/2026-11-04-lummox-claude-code-blender.md))
    - Agent-built in Blender: hard-surface props, modular kits and level blockouts written as Blender Python. ([Claude Code + Blender](sources/2026-11-04-lummox-claude-code-blender.md))
    - Generated and paid: characters and organic shapes from concept sheets lifted to 3D with Tripo, Meshy or Hunyuan3D on fal, then cleaned up in Blender. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
-   - With all 3D from the kit and the bridge, fal only paid for the video, two backdrop images and the sound: 2.07 to 2.69 USD for a game, against Video2Game's gallery median of 6.13 USD. ([calibration 4](calibration/2026-11-06-video2game/README.md))
+   - With all 3D from the kit and the bridge, fal only paid for the video, two backdrop images and the sound: 2.67 USD for a game, against Video2Game's gallery median of 6.13 USD. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 4. **Blender asset loop** for every model, described below.
 5. **Game build** in Three.js with keyboard, gamepad and touch input and a complete loop: goal, progression, feedback, end and restart. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
    - If a score may ever carry value, write the rules first as an integer simulation: ticks, micrometres, seeded randomness, no `Math.sin` and no wall-clock time, with `replay(seed, inputs)` as the server's check; Dockstack's replays gave the same hash in Chrome, Node and JavaScriptCore. ([calibration 4](calibration/2026-11-06-video2game/README.md))
@@ -154,4 +154,5 @@ Scripted versions:
 - Free: Blender, both bridges, Poly Haven, Poly Pizza, Three.js, and Claude Code within our plan.
 - Paid, with approval each time: fal calls (video, images, image-to-3D), OpenAI image calls, and generator API keys or Premium in MCP for Blender.
 - fal prices checked on 2026-11-06: MiniMax H3 Max video 0.112 USD per second at 1080p until 2026-11-15 and 0.16 after, Nano Banana Pro images 0.15 each at 1K or 2K, Meshy image-to-3D 1.20 with textures, ElevenLabs sound 0.002 per second and music 0.60 per started minute. ([calibration 4](calibration/2026-11-06-video2game/README.md))
-- The `FAL_KEY` in the global env cannot read fal's usage API, which needs an admin key, so estimate from the price pages and check the fal dashboard for the exact charge. ([calibration 4](calibration/2026-11-06-video2game/README.md))
+- Read the exact charge from fal's usage API (`GET https://api.fal.ai/v1/models/usage`, filtered by `endpoint_id` and the run's `start` and `end`) with `FAL_BILLING_KEY` from the global env, a read-only BILLING-preset key; the model key `FAL_KEY` cannot read it. ([calibration 4](calibration/2026-11-06-video2game/README.md))
+- fal bills music per started minute and sound effects per started second, and outputs run slightly long: ask for 59 s of music, not 60, or a 24 ms overrun doubles the price. ([calibration 4](calibration/2026-11-06-video2game/README.md))

@@ -3,7 +3,7 @@
 Run on 2026-11-06 for [issue #1](https://github.com/imDev2023/x-gaming/issues/1).
 The operator chose the concept, Dockstack (verb: stack; on-chain hook: a daily seeded challenge whose scores a server checks by replaying each run), and approved up to 10 USD of fal calls; both answers are on the issue.
 The [Video2Game](https://github.com/lovisdotio/video-to-game) workflow ran once end to end: concept video, spec from frames, assets, game, look match and playtest, followed by WORKFLOW.md's Blender asset loop and ship check.
-It spent about 2.07 to 2.69 USD of fal calls.
+It spent 2.67 USD of fal calls.
 
 ![Dockstack at 1600 x 900: the crane's hook over a growing stack on the boat, the quay and terrace receding into the haze](playtest/screen-landscape.jpg)
 
@@ -11,7 +11,7 @@ It spent about 2.07 to 2.69 USD of fal calls.
 
 Video2Game works for us, and costs less than its gallery average once our free sources cover the 3D.
 One 10 s take of the concept video was enough, and the Crate_01 kit plus five agent-built Blender pieces replaced every image-to-3D call, so fal only paid for the video, two backdrop images, eight sounds and one music track.
-That came to 2.07 to 2.69 USD, against a gallery median of 6.13 USD that also leaves out the video.
+That came to 2.67 USD, against a gallery median of 6.13 USD that also leaves out the video.
 
 Matching the video's look was the hard part, and the skill's side-by-side routine is what found the problems.
 The first build was a flat side view from 15 m that missed the video's close, wide lens, its front light and its receding quay, and only the paired frames showed it.
@@ -102,17 +102,19 @@ The recorder captured take 3 at 46.8 fps and take 2 at 26.9 fps; that is the hea
 
 ## Spend
 
-| Endpoint | Calls | What | Price | Cost (USD) |
-| --- | --- | --- | --- | --- |
-| `minimax/h3-max/text-to-video` | 1 | the concept video, 10 s at 1080p | 0.112 per second until 2026-11-15, then 0.16 | 1.12 to 1.14 |
-| `fal-ai/nano-banana-pro/edit` | 2 | the sky plate and the terrace, 2K | 0.15 per image | 0.30 |
-| `fal-ai/birefnet/v2` | 1 | the terrace's cutout | listed as 0 per compute second | about 0 |
-| `fal-ai/elevenlabs/sound-effects/v2` | 8 | 23.5 s of sound | 0.002 per second | 0.05 |
-| `elevenlabs/music/v2.5` | 1 | 60.02 s of music | 0.60 per started minute | 0.60 to 1.20 |
-| **Total** | **13** | | | **2.07 to 2.69** |
+Charges as fal's usage API reported them for the run's endpoints between 04:30 and 05:05 UTC on 2026-11-06, read with a BILLING-preset key:
 
-The ranges are about billing: the video came back 0.14 s longer than asked, and the music 24 ms longer than one minute, which fal may bill as a second minute.
-The exact charge could not be read here, because the `FAL_KEY` in the global env lacks the admin scope that fal's usage API needs; the fal dashboard shows it.
+| Endpoint | Calls | What | Billed | Cost (USD) |
+| --- | --- | --- | --- | --- |
+| `minimax/h3-max/text-to-video` | 1 | the concept video, 10 s at 1080p | 32 units at 0.035 (0.112 per second of video until 2026-11-15, then 0.16) | 1.1200 |
+| `fal-ai/nano-banana-pro/edit` | 2 | the sky plate and the terrace, 2K | 2 images at 0.15 | 0.3000 |
+| `fal-ai/birefnet/v2` | 1 | the terrace's cutout | 0.75 compute seconds at 0.000575 | 0.0004 |
+| `fal-ai/elevenlabs/sound-effects/v2` | 8 | 23.5 s of sound | 24 seconds at 0.002 | 0.0480 |
+| `elevenlabs/music/v2.5` | 1 | 60.02 s of music | 2 minutes at 0.60 | 1.2000 |
+| **Total** | **13** | | | **2.6684** |
+
+The music came back 24 ms over one minute and was billed as two, so that sliver cost 0.60 USD, almost a quarter of the run: ask for 59 s, not 60.
+Sound effects are billed in whole seconds per clip, so the 1.5 s tip sound counted as 2.
 The estimate before the run was 4.9 USD; the saving came from keeping one take instead of three.
 Raw fal outputs are kept out of git in `raw/` on the run's machine; the game ships converted copies, and the reference video is re-encoded from 21 MB to 2.4 MB.
 
