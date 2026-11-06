@@ -16,12 +16,15 @@ The owner collects ideas here for building games, specifically blockchain games:
 
 ## Traps found so far
 
-- Our pipeline and its done checks live in `WORKFLOW.md`; hands-on tests live in `calibration/` (start with [calibration/2026-11-05-crate](calibration/2026-11-05-crate/README.md)).
+- Our pipeline and its done checks live in `WORKFLOW.md`; hands-on tests live in `calibration/` (start with [calibration/2026-11-05-crate](calibration/2026-11-05-crate/README.md), then [calibration/2026-11-06-crate-bridge](calibration/2026-11-06-crate-bridge/README.md) for the live bridge).
 - MCP for Blender is installed (local scope, `BLENDER_MCP_SAFE_MODE=1`, `DISABLE_TELEMETRY=true`; remove with `claude mcp remove blender -s local`).
   Auto mode refuses to install MCP servers or Blender add-ons, so the owner runs those with `!`; the tools load only in a session started afterwards.
 - The add-on's server never starts under `blender -b`, so the bridge needs the Blender GUI.
-  Launch `/Applications/Blender.app/Contents/MacOS/Blender --addons blender_mcp` with `run_in_background` to enable it for that run without changing the owner's Blender preferences (not yet tried); it listens on localhost:9876.
+  Launch `BLENDERMCP_NO_UPDATE_CHECK=1 /Applications/Blender.app/Contents/MacOS/Blender --addons blender_mcp` with `run_in_background` to enable it for that run without changing the owner's Blender preferences; the add-on starts its server on localhost:9876 by itself about 50 s later (worked on 2026-11-06), and the variable skips its update check against GitHub.
+  Stop that Blender with TaskStop when done; it is the session's own process.
+- Safe mode rejects any name not bound in the same call, lambdas, `import time` and `open()`, so write each bridge call as one self-contained script, as in calibration 2.
 - Blender's look renders show shape, not final color: judge color and metal in Three.js with an environment map.
+  Workbench cavity and outlines also draw edges the engine never draws, so judge face-on details in Material Preview or the engine.
 
 ## Multica dashboard
 

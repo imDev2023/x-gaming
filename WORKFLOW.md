@@ -30,18 +30,38 @@ claude mcp add blender -e DISABLE_TELEMETRY=true -e BLENDER_MCP_SAFE_MODE=1 -- u
 uvx mcp-for-blender install-addon
 ```
 
-Then press `N` in Blender's 3D viewport, open the MCP for Blender tab, and start the server if it is not running.
+Its tools load only in a Claude Code session started after the install.
+Launch Blender's GUI with the add-on enabled for that run, which leaves Blender's preferences unchanged; the add-on then starts its server on localhost:9876 by itself, about 50 s after launch. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
 
+```bash
+BLENDERMCP_NO_UPDATE_CHECK=1 /Applications/Blender.app/Contents/MacOS/Blender --addons blender_mcp
+```
+
+The server needs the GUI and never starts under `blender -b`.
+If it is not running, press `N` in the 3D viewport, open the MCP for Blender tab and start it.
+
+- Use the bridge to author: looking live from any angle, distance and shading caught defects that fixed renders missed. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
 - The official [Blender Lab MCP](https://www.blender.org/lab/mcp-server/), also offered as Anthropic's Claude Blender connector, is the alternative once we move to Blender 5.1 or newer.
 - Use one bridge per project.
 
 ### Safety
 
-- Keep the add-on's socket (port 9876) on localhost, since it has no authentication.
+- Keep the add-on's socket (port 9876) on localhost, since it has no authentication and safe mode guards only the MCP path, not raw code from other local processes.
 - Keep safe mode on, and turn it off only for a specific task that needs file or network access, after saving.
 - Save the `.blend` file before any large script run.
 - Leave Blender's auto-run of Python scripts off, especially for downloaded `.blend` files.
 - Add no Premium plan or generator API keys to the add-on without approval, because its 3D generation calls cost money.
+
+### Scripts through the bridge
+
+Safe mode checks each `execute_blender_code` script before it reaches Blender, so scripts follow its rules. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
+
+- Make every call self-contained: a name defined in an earlier call is rejected, so nothing carries over between calls and state lives only in `bpy.data`.
+- Import only `bpy`, `bmesh`, `mathutils` and pure-Python standard modules; `time`, `os`, `open()` and lambdas are rejected, so print reports and save them from the tool's output.
+- Write the build as one script that reuses its materials, mesh and object by name, so rerunning it leaves no `.001` duplicates.
+- Commit the final build, check and export calls; they also run headless with `blender -b --python`, which reproduced calibration 2's GLB byte for byte.
+- Set a mesh's material slots before `bmesh.to_mesh()`, because `mesh.materials.clear()` afterwards resets every face to the first slot.
+- Find shader nodes by type, never by name, since names are localized.
 
 ### Brief template
 
@@ -59,8 +79,8 @@ Build <object> for <game>, seen from <camera and distance>.
 - Origin: <bottom center at Z=0 | hinge | socket>; apply location, rotation and scale
 - Export: selected objects only, GLB, +Y up, to assets/models/<name>.glb
 
-Then show solid and wireframe views from several angles, report the triangle count and bounds,
-fix anything that misses the brief, export, and list the file path and any warnings.
+Then look at it in wireframe and Material Preview from several angles and once from the game camera's distance,
+report the triangle count and bounds, fix anything that misses the brief, export, and list the file path and any warnings.
 Do not stop until every done check passes.
 ```
 
@@ -68,19 +88,28 @@ Do not stop until every done check passes.
 
 - Measured bounds and triangle count match the brief.
 - A person has looked at one multi-angle view, checking shape and proportion; color is judged later, in the engine.
-- No two faces are coplanar, since overlapping parts flicker in the engine (z-fighting). ([calibration 1](calibration/2026-11-05-crate/README.md))
+- Details read face-on under flat lighting without shadows: judge them in Material Preview or the engine, never only in Workbench renders with cavity or outlines, which draw edges the engine does not.
+  A detail that shares its material and facing with the surface behind it disappears; darken the recess with a color attribute, which costs no triangles or textures. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
+- No two faces are coplanar and overlapping, since such parts flicker in the engine (z-fighting). ([calibration 1](calibration/2026-11-05-crate/README.md))
+  Calibration 2's `checks.py` tests this by script. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
+- Every material is used by at least one face; checking slot names alone misses faces that all landed on one slot. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
 - `npx @gltf-transform/cli validate <file>` reports zero errors, and `inspect` matches the brief.
 - Materials on closed meshes are single-sided: turn on backface culling in Blender, or the GLB exports `doubleSided: true`. ([calibration 1](calibration/2026-11-05-crate/README.md))
 - The GLB loads in our Three.js scene at the right scale, origin and orientation, and its colors read as briefed under the game's lighting.
-- Names are clean, with no `Cube.003` and no leftover `.001` objects.
+- Names are clean, with no `Cube.003` and no leftover `.001` objects, including UV maps and color attributes (`bmesh` names a new UV map `Float2`). ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
 - `CREDITS.md` lists every pulled or generated asset with its source and licence.
 
-A scripted version of the build, checks, look renders and export, plus a Three.js engine check page, is in [calibration/2026-11-05-crate](calibration/2026-11-05-crate/README.md).
+Scripted versions:
+
+- [calibration/2026-11-05-crate](calibration/2026-11-05-crate/README.md): a headless build with look renders, and the Three.js engine check page, which takes any GLB as `viewer.html?src=<path>`.
+- [calibration/2026-11-06-crate-bridge](calibration/2026-11-06-crate-bridge/README.md): the bridge calls, with the Blender-side done checks as one script.
 
 ### Engine notes
 
 - Metallic materials render almost black without an environment map, so every game scene sets `scene.environment` from a CC0 Poly Haven HDRI. ([calibration 1](calibration/2026-11-05-crate/README.md))
 - Three.js loads a Blender object with several materials as a group of meshes named `<Name>_1`, `<Name>_2`, so game code finds props by the group name. ([calibration 1](calibration/2026-11-05-crate/README.md))
+- glTF vertex colors (`COLOR_0`) multiply the base color, and Three.js applies them without setup.
+  Blender exports a color attribute when the material multiplies it into Base Color through a Mix node, and keeps the other Mix input as the base color factor. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
 
 ### What agents model well
 

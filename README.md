@@ -4,7 +4,7 @@ Ideas, X posts and GitHub repos for building games, especially blockchain games.
 Each source is read in full, checked against what it claims, and judged on whether we could use it.
 What we learn is merged into [WORKFLOW.md](WORKFLOW.md), our current game-building pipeline.
 Next steps are tracked in [Issues](https://github.com/imDev2023/x-gaming/issues).
-Hands-on tests of the workflow live in `calibration/`, starting with [Crate_01](calibration/2026-11-05-crate/README.md), one prop taken from a brief to Three.js.
+Hands-on tests of the workflow live in `calibration/`: [Crate_01](calibration/2026-11-05-crate/README.md), one prop taken from a brief to Three.js by a headless script, and [Crate_01 through the live bridge](calibration/2026-11-06-crate-bridge/README.md), the same brief driven through MCP for Blender.
 
 ## Sources
 
