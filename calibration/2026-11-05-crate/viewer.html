@@ -3,11 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Crate_01 engine check</title>
+<title>Prop engine check</title>
 <style>
   html, body { margin: 0; height: 100%; background: #1d2024; color: #e8e6e3; font: 14px/1.4 ui-monospace, Menlo, monospace; }
   canvas { display: block; }
   #report { position: fixed; left: 12px; top: 12px; margin: 0; padding: 10px 12px; background: rgba(0, 0, 0, 0.55); border-radius: 6px; white-space: pre; }
+  #report.lineup { font-size: 12px; }
 </style>
 <script type="importmap">
 { "imports": {
@@ -17,13 +18,21 @@
 </script>
 </head>
 <body>
-<pre id="report">loading crate_01.glb...</pre>
+<pre id="report">loading...</pre>
 <script type="module">
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
-// A chase camera about 4 m away, as the brief says, next to a 1.8 m stand-in player.
+// The models to check: ?src=<path to a GLB>, relative to this page, repeated for a
+// lineup (?src=a.glb&src=b.glb); crate_01.glb next to this page by default.
+const srcs = new URLSearchParams(location.search).getAll("src");
+if (!srcs.length) srcs.push("crate_01.glb");
+
+const LINEUP_ROW_M = 5; // a lineup starts a new row past this width
+const GAP_M = 0.5; // between models in a row, so footprints stay on the 0.5 m grid
+const ROW_GAP_M = 1; // between rows; later rows sit nearer the camera
+
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -39,68 +48,171 @@ scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x3a2f25, 0.4));
 const sun = new THREE.DirectionalLight(0xffffff, 1.4);
 sun.position.set(3, 6, 4);
 scene.add(sun);
-scene.add(new THREE.GridHelper(10, 10, 0x8a8f96, 0x41464d)); // 1 m squares
 
+// A 1.8 m stand-in player: a 1.2 m body + two 0.3 m caps, so its center sits at 0.9 m.
 const player = new THREE.Mesh(
   new THREE.CapsuleGeometry(0.3, 1.2, 4, 12),
   new THREE.MeshStandardMaterial({ color: 0x4f8fd6, roughness: 0.6 })
 );
-player.position.set(-1.2, 0.9, 0); // 1.2 m body + two 0.3 m caps = 1.8 m tall, so its center sits at 0.9 m
 scene.add(player);
 
-// The model to check: ?src=<path to a GLB>, relative to this page; crate_01.glb next to it by default.
-const src = new URLSearchParams(location.search).get("src") || "crate_01.glb";
-
+// A chase camera about 4 m away, as the briefs say. It keeps this default view when
+// everything fits, and otherwise pulls back along the same direction until it does.
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.05, 100);
-camera.position.set(1.6, 2.2, 3.2); // about 4 m from the crate
-camera.lookAt(-0.4, 0.6, 0);
+const DEFAULT_EYE = new THREE.Vector3(1.6, 2.2, 3.2);
+const DEFAULT_TARGET = new THREE.Vector3(-0.4, 0.6, 0);
+let framed = new THREE.Box3();
+let cameraMode = "default";
 
-const out = document.getElementById("report");
-new GLTFLoader().load(
-  src,
-  (gltf) => {
-    const root = gltf.scene;
-    scene.add(root);
-    const box = new THREE.Box3().setFromObject(root);
-    const size = box.getSize(new THREE.Vector3());
-    let tris = 0;
-    const names = [];
-    const materials = new Set();
-    root.traverse((o) => {
-      names.push(o.name || "(unnamed)");
-      if (o.isMesh) {
-        tris += o.geometry.index ? o.geometry.index.count / 3 : o.geometry.attributes.position.count / 3;
-        (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) =>
-          materials.add(
-            `${m.name} ${m.side === THREE.DoubleSide ? "double-sided" : "single-sided"}` +
-              (m.vertexColors ? " vertex-colors" : "")
-          )
-        );
+// True when the box is on screen, inside a small margin and clear of the report panel.
+function fits(box) {
+  camera.updateMatrixWorld();
+  camera.updateProjectionMatrix();
+  const p = new THREE.Vector3();
+  const lo = new THREE.Vector2(Infinity, Infinity);
+  const hi = new THREE.Vector2(-Infinity, -Infinity);
+  for (const x of [box.min.x, box.max.x])
+    for (const y of [box.min.y, box.max.y])
+      for (const z of [box.min.z, box.max.z]) {
+        p.set(x, y, z).project(camera);
+        if (Math.abs(p.x) > 0.92 || Math.abs(p.y) > 0.92 || p.z > 1) return false;
+        lo.min(p);
+        hi.max(p);
       }
-    });
-    const r = (v) => Math.round(v * 1000) / 1000;
-    const report = {
+  const panel = out.getBoundingClientRect();
+  const left = (panel.left / window.innerWidth) * 2 - 1;
+  const right = (panel.right / window.innerWidth) * 2 - 1;
+  const top = 1 - (panel.top / window.innerHeight) * 2;
+  const bottom = 1 - (panel.bottom / window.innerHeight) * 2;
+  return hi.x < left || lo.x > right || hi.y < bottom || lo.y > top;
+}
+
+function frame(box) {
+  framed = box;
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.position.copy(DEFAULT_EYE);
+  camera.lookAt(DEFAULT_TARGET);
+  cameraMode = "default";
+  if (fits(box)) return;
+  const center = box.getCenter(new THREE.Vector3());
+  const target = new THREE.Vector3(center.x, DEFAULT_TARGET.y, center.z);
+  const dir = DEFAULT_EYE.clone().sub(DEFAULT_TARGET);
+  for (let scale = 1; scale < 10; scale += 0.05) {
+    camera.position.copy(target).addScaledVector(dir, scale);
+    camera.lookAt(target);
+    if (fits(box)) break;
+  }
+  cameraMode = `fitted, ${camera.position.distanceTo(target).toFixed(1)} m`;
+}
+
+const r = (v) => Math.round(v * 1000) / 1000;
+
+// What the engine measured, with the model still at its own origin.
+function measure(src, root) {
+  const box = new THREE.Box3().setFromObject(root);
+  const size = box.getSize(new THREE.Vector3());
+  let tris = 0;
+  const names = [];
+  const materials = new Set();
+  root.traverse((o) => {
+    names.push(o.name || "(unnamed)");
+    if (o.isMesh) {
+      tris += o.geometry.index ? o.geometry.index.count / 3 : o.geometry.attributes.position.count / 3;
+      (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) =>
+        materials.add(
+          `${m.name} ${m.side === THREE.DoubleSide ? "double-sided" : "single-sided"}` +
+            (m.vertexColors ? " vertex-colors" : "")
+        )
+      );
+    }
+  });
+  return {
+    src,
+    box,
+    report: {
       size_m: [r(size.x), r(size.y), r(size.z)],
       min_y_m: r(box.min.y),
       center_xz_m: [r((box.min.x + box.max.x) / 2), r((box.min.z + box.max.z) / 2)],
       triangles: tris,
       nodes: names,
       materials: [...materials],
-    };
-    window.__report = report;
-    out.textContent = src + "\n" + JSON.stringify(report, null, 1);
-    renderer.render(scene, camera);
-  },
-  undefined,
-  (err) => {
-    window.__report = { error: String(err) };
-    out.textContent = `load failed: ${src}: ${err}`;
+    },
+  };
+}
+
+// One model stays at the origin; several are laid out in rows, left to right.
+function layout(models) {
+  const rows = [[]];
+  let width = 0;
+  for (const m of models) {
+    const w = m.box.max.x - m.box.min.x;
+    if (rows.at(-1).length && width + GAP_M + w > LINEUP_ROW_M) {
+      rows.push([]);
+      width = 0;
+    }
+    width += (rows.at(-1).length ? GAP_M : 0) + w;
+    rows.at(-1).push(m);
   }
-);
+  let z = 0;
+  let left = Infinity;
+  let first = 1; // width of the leftmost model in the first row
+  rows.forEach((row, i) => {
+    const depth = Math.max(...row.map((m) => m.box.max.z - m.box.min.z));
+    if (i) z += depth / 2;
+    const total = row.reduce((s, m) => s + (m.box.max.x - m.box.min.x), 0) + GAP_M * (row.length - 1);
+    let x = models.length > 1 ? Math.round(-total / 2 / GAP_M) * GAP_M : 0;
+    for (const m of row) {
+      const w = m.box.max.x - m.box.min.x;
+      if (models.length > 1) m.root.position.set(x - m.box.min.x, 0, z);
+      const l = models.length > 1 ? x : m.box.min.x;
+      if (i === 0 && l < left) [left, first] = [l, w];
+      x += w + GAP_M;
+    }
+    z += depth / 2 + ROW_GAP_M;
+  });
+  // The player stands left of the first row, at x = -1.2 beside a 1 m crate, and
+  // further out beside a wider model, which in perspective would otherwise hide it.
+  player.position.set(left - 0.7 - 0.5 * Math.max(0, first - 1), 0.9, 0);
+}
+
+const out = document.getElementById("report");
+const loader = new GLTFLoader();
+Promise.all(srcs.map((src) => loader.loadAsync(src).then((gltf) => ({ root: gltf.scene, ...measure(src, gltf.scene) }))))
+  .then((models) => {
+    for (const m of models) scene.add(m.root);
+    layout(models);
+    const all = new THREE.Box3().setFromObject(player);
+    for (const m of models) all.union(new THREE.Box3().setFromObject(m.root));
+    const extent = Math.max(Math.abs(all.min.x), all.max.x, Math.abs(all.min.z), all.max.z);
+    const grid = Math.max(10, 2 * Math.ceil(extent + 1)); // 1 m squares
+    scene.add(new THREE.GridHelper(grid, grid, 0x8a8f96, 0x41464d));
+    // Fill the panel first, since the camera frames the scene clear of it.
+    if (models.length === 1) {
+      out.textContent = srcs[0] + "\n" + JSON.stringify(models[0].report, null, 1);
+    } else {
+      out.className = "lineup";
+      out.textContent = models
+        .map((m) => {
+          const q = m.report;
+          return `${q.nodes[1]}  ${q.size_m.join(" x ")} m  min_y ${q.min_y_m}  center ${q.center_xz_m.join(", ")}  ${q.triangles} tris`;
+        })
+        .join("\n");
+    }
+    frame(all);
+    window.__report =
+      models.length === 1
+        ? { ...models[0].report, camera: cameraMode }
+        : { models: models.map((m) => ({ src: m.src, ...m.report })), camera: cameraMode };
+    renderer.render(scene, camera);
+  })
+  .catch((err) => {
+    window.__report = { error: String(err) };
+    out.textContent = `load failed: ${srcs.join(", ")}: ${err}`;
+  });
+
 window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  frame(framed);
 });
 renderer.setAnimationLoop(() => renderer.render(scene, camera));
 </script>
