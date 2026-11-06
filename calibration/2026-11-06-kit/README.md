@@ -62,7 +62,7 @@ Sizes are width x depth x height, as in the briefs.
 | Materials | both used by every piece, single-sided, no textures |
 | Coplanar faces | 0 same-facing overlaps in every piece after the fix, and the check's self-test passes |
 | Validation | 0 errors and 0 warnings for every GLB; 2 infos each for unused UVs, kept for later texturing |
-| Look | multi-angle Material Preview and wireframe looks of each piece, reviewed by the agent: [look-sheet.png](look-sheet.png) |
+| Look | multi-angle Material Preview and wireframe looks of each piece, reviewed by the agent, and the kit approved by the owner on 2026-11-06: [look-sheet.png](look-sheet.png) |
 | Engine | each loads at the right scale, origin and orientation, and its details read face-on: [engine-check.png](engine-check.png), [engine-lineup.png](engine-lineup.png) |
 | Reproducible | the committed calls rerun headless give six byte-identical GLBs and the same check results |
 

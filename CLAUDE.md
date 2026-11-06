@@ -16,12 +16,11 @@ The owner collects ideas here for building games, specifically blockchain games:
 
 ## Traps found so far
 
-- `WORKFLOW.md` holds the pipeline, the Blender bridge's launch command, the safe-mode rules for bridge scripts and the done checks; read it before any asset work.
-  Hands-on tests live in `calibration/`: [the crate by script](calibration/2026-11-05-crate/README.md), then [the crate through the bridge](calibration/2026-11-06-crate-bridge/README.md), whose `build.py`, `checks.py` and `export.py` are the templates for a new prop, then [the kit](calibration/2026-11-06-kit/README.md), whose scripts are the templates for a set of props.
-- MCP for Blender is installed (local scope, `BLENDER_MCP_SAFE_MODE=1`, `DISABLE_TELEMETRY=true`; remove with `claude mcp remove blender -s local`).
-  Auto mode refuses to install MCP servers or Blender add-ons, so the owner runs those with `!`; the tools load only in a session started afterwards.
-- The bridge needs Blender's GUI, since its server never starts under `blender -b`: start it with `run_in_background`, which leaves the owner's Blender preferences unchanged, and stop it with TaskStop when done.
-- Workbench renders with cavity and outlines draw edges and colors the engine never shows, so judge face-on detail, color and metal in Material Preview or the Three.js check page, `calibration/2026-11-05-crate/viewer.html?src=<glb>`.
+- Read `WORKFLOW.md` before any asset work: it holds the pipeline, the bridge's launch command, the safe-mode script rules and the done checks.
+  Templates: [one prop](calibration/2026-11-06-crate-bridge/README.md) and [a set of props](calibration/2026-11-06-kit/README.md); the Three.js check page is `calibration/2026-11-05-crate/viewer.html?src=<glb>`, with `src` repeated for a lineup.
+- MCP for Blender is installed at local scope with safe mode on and telemetry off (remove with `claude mcp remove blender -s local`).
+  Auto mode refuses to install MCP servers or Blender add-ons, so the owner runs those with `!`, and new tools load only in a later session.
+- Start Blender's GUI for the bridge with `run_in_background` and stop it with TaskStop; it leaves the owner's Blender preferences unchanged.
 
 ## Multica dashboard
 
