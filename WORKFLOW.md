@@ -15,13 +15,17 @@ When a new source improves a step, update this file and cite the note.
    - Free CC0 libraries: Poly Haven textures, HDRIs and models, and Poly Pizza models filtered to CC0. ([Claude Code + Blender](sources/2026-11-04-lummox-claude-code-blender.md))
    - Agent-built in Blender: hard-surface props, modular kits and level blockouts written as Blender Python. ([Claude Code + Blender](sources/2026-11-04-lummox-claude-code-blender.md))
    - Generated and paid: characters and organic shapes from concept sheets lifted to 3D with Tripo, Meshy or Hunyuan3D on fal, then cleaned up in Blender. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
+     Choose how it will be rigged before paying, keep the raw download untouched, and give image-to-3D a reference on studio grey with no text, since green fringes and labels end up in the geometry; skin hard-surface parts rigidly, one bone per part. ([VGD packs](sources/2026-11-06-chongdashu-aioriented-vgd.md))
+   - For a set of 2D props or sprites, ask for one sheet on a flat green background, edited from real reference images, and cut it up with our own script. ([VGD packs](sources/2026-11-06-chongdashu-aioriented-vgd.md))
    - With all 3D from the kit and the bridge, fal only paid for the video, two backdrop images and the sound: 2.67 USD for a game, against Video2Game's gallery median of 6.13 USD. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 4. **Blender asset loop** for every model, described below.
 5. **Game build** in Three.js with keyboard, gamepad and touch input and a complete loop: goal, progression, feedback, end and restart. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
    - If a score may ever carry value, write the rules first as an integer simulation: ticks, micrometres, seeded randomness, no `Math.sin` and no wall-clock time, with `replay(seed, inputs)` as the server's check; Dockstack's replays gave the same hash in Chrome, Node and JavaScriptCore. ([calibration 4](calibration/2026-11-06-video2game/README.md))
+   - The server's check replays the run with the same build of the rules, refuses a run that claims more ticks than the time since its seed was handed out allows, takes the player from a verified signature and never from the request body, and pays each reward once under a stable key. ([VGD packs](sources/2026-11-06-chongdashu-aioriented-vgd.md))
    - The page only reads the simulation; a `?debug` check that hashes the state after each tick and after drawing catches the renderer writing into it. ([calibration 4](calibration/2026-11-06-video2game/README.md))
    - Give portrait screens their own framing: fitting a landscape span into a phone's width leaves a thin strip of game. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 6. **Look match and playtest.** Compare game and video frames side by side at fixed times, and let the agent play the game and record its best seconds. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
+   - Let a second agent judge the screenshots against the reference without seeing the builder's reasoning, with camera, lens, light and seed fixed and from the gameplay camera's distance. ([VGD packs](sources/2026-11-06-chongdashu-aioriented-vgd.md))
    - The pairs catch what no single screenshot does: the first Dockstack pairs showed a flat 30-degree side view where the video had a close 45-degree lens, front light and a quay receding into haze. ([calibration 4](calibration/2026-11-06-video2game/README.md))
    - A generated sky plate already carries the video's grade: leave tone mapping off and warm the lights rather than grading the frame twice, and apply any highlight shoulder to the brightest channel, since per-channel compression turned warm haze green. ([calibration 4](calibration/2026-11-06-video2game/README.md))
    - Size a backdrop plate for the widest lens and aspect, and check 2560 x 1080 and a 390 x 844 portrait before calling the look done. ([calibration 4](calibration/2026-11-06-video2game/README.md))
@@ -57,6 +61,8 @@ If it is not running, press `N` in the 3D viewport, open the MCP for Blender tab
 - If the first status call fails with a broken pipe, call it again: the server was still connected to an earlier Blender. ([kit](calibration/2026-11-06-kit/README.md))
 - The official [Blender Lab MCP](https://www.blender.org/lab/mcp-server/), also offered as Anthropic's Claude Blender connector, is the alternative once we move to Blender 5.1 or newer.
 - Use one bridge per project.
+- The bridge is a workbench, not the source: write anything that works live back into the build script, and prove it with a clean headless rebuild. ([VGD packs](sources/2026-11-06-chongdashu-aioriented-vgd.md))
+  Run headless builds with `--python-exit-code 1`, since a Python error otherwise still exits 0.
 
 ### Safety
 
@@ -112,6 +118,7 @@ Do not stop until every done check passes.
 - Every material is used by at least one face; checking slot names alone misses faces that all landed on one slot. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
   Check the materials the pieces use, not everything in the file, since the GUI's startup file holds an unused grease-pencil material. ([kit](calibration/2026-11-06-kit/README.md))
 - `npx @gltf-transform/cli validate <file>` reports zero errors, and `inspect` matches the brief.
+- Each asset type (static, rigid-animated, skinned) has one export recipe, proved once with a deliberately lopsided marker asset so a mirrored axis shows; the game refuses a model whose triangle count, bounds, ground contact or facing differ from its manifest. ([VGD packs](sources/2026-11-06-chongdashu-aioriented-vgd.md))
 - Materials on closed meshes are single-sided: turn on backface culling in Blender, or the GLB exports `doubleSided: true`. ([calibration 1](calibration/2026-11-05-crate/README.md))
 - The GLB loads in our Three.js scene at the right scale, origin and orientation, and its colors read as briefed under the game's lighting.
 - Names are clean, with no `Cube.003` and no leftover `.001` objects, including UV maps and color attributes (`bmesh` names a new UV map `Float2`). ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
@@ -148,11 +155,13 @@ Scripted versions:
 - Add touch controls and test on a phone. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
 - Prefer CC0 assets, keep CC-BY credits in `CREDITS.md`, and check each generator's commercial terms. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md), [Claude Code + Blender](sources/2026-11-04-lummox-claude-code-blender.md))
 - Never pay out on a score the browser reports; verify it on a server. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
+- Upload nothing without a passing smoke test, ship the exact package that was tested rather than a rebuild, and keep video masters out of git. ([VGD packs](sources/2026-11-06-chongdashu-aioriented-vgd.md))
 
 ## Costs
 
 - Free: Blender, both bridges, Poly Haven, Poly Pizza, Three.js, and Claude Code within our plan.
 - Paid, with approval each time: fal calls (video, images, image-to-3D), OpenAI image calls, and generator API keys or Premium in MCP for Blender.
 - fal prices checked on 2026-11-06: MiniMax H3 Max video 0.112 USD per second at 1080p until 2026-11-15 and 0.16 after, Nano Banana Pro images 0.15 each at 1K or 2K, Meshy image-to-3D 1.20 with textures, ElevenLabs sound 0.002 per second and music 0.60 per started minute. ([calibration 4](calibration/2026-11-06-video2game/README.md))
+- Send `x-app-fal-disable-fallback: true` so a run uses only the model asked for, and log each run's `x-fal-request-id` and `x-fal-billable-units` headers; the cost some endpoints return in the body is a placeholder. ([VGD packs](sources/2026-11-06-chongdashu-aioriented-vgd.md))
 - Read the exact charge from fal's usage API (`GET https://api.fal.ai/v1/models/usage`, filtered by `endpoint_id` and the run's `start` and `end`) with `FAL_BILLING_KEY` from the global env, a read-only BILLING-preset key; the model key `FAL_KEY` cannot read it. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 - fal bills music per started minute and sound effects per started second, and outputs run slightly long: ask for 59 s of music, not 60, or a 24 ms overrun doubles the price. ([calibration 4](calibration/2026-11-06-video2game/README.md))

@@ -24,6 +24,8 @@ The owner collects ideas here for building games, specifically blockchain games:
 - The Video2Game skill is not installed: calibration 4 ran it from a clone of `lovisdotio/video-to-game` at `d1a24fd`, so reinstall or reclone it before another game run.
 - MCP for Blender is installed at local scope with safe mode on and telemetry off (remove with `claude mcp remove blender -s local`).
   Auto mode refuses to install MCP servers or Blender add-ons, so the owner runs those with `!`, and new tools load only in a later session.
+- `reference/aioriented/` (the owner's VibeGameDev member repos) and `.claude/skills/` (15 skills copied from vgd-skills v3.6.0) are gitignored and local only: never commit or push them, and paraphrase rather than copy from them, as with any source.
+  To update the skills, pull `reference/aioriented/vgd-skills` and copy the same folders again.
 - Start Blender's GUI for the bridge with `run_in_background` and stop it with TaskStop; it leaves the owner's Blender preferences unchanged.
 
 ## Multica dashboard

@@ -10,6 +10,8 @@ Hands-on tests of the workflow live in `calibration/`: [Crate_01](calibration/20
 
 Newest first.
 
+- **2026-11-06**: [The AIOriented repos](sources/2026-11-06-chongdashu-aioriented-vgd.md) by [@chongdashu](https://x.com/chongdashu), 22 repos of VibeGameDev skills, game templates and finished games with their build records, mostly members-only.
+  - Verdict: useful; no repo replaces our pipeline, but most sharpen a step of it, and Retro del Sol's server shows the replay check our leaderboard needs.
 - **2026-11-04**: [Claude Code + Blender](sources/2026-11-04-lummox-claude-code-blender.md) by [@Lummox_eth](https://x.com/Lummox_eth/status/2117215758472073446), a written guide to driving Blender from Claude Code through MCP to make game-ready assets.
   - Verdict: useful; it tightens our Blender step and adds free CC0 assets, though it shows no demo of its own.
 - **2026-11-04**: [Sumiro](sources/2026-11-04-xikhar-sumiro.md) by [@xikhar](https://x.com/xikhar/status/2117776295534997818), a 3D ink-wash platformer built in 24 hours with Claude Code, Flux, GPT Image, Tripo, Blender and Three.js.
@@ -17,6 +19,7 @@ Newest first.
 
 ## Reusable tools found so far
 
+- [VGD skills](https://github.com/AIOriented/vgd-skills) (VibeGameDev members): 24 agent skills for Blender, Three.js, fal, Meshy, Tripo, Colyseus and the Wavedash and CrazyGames portals; 15 are installed in this project's gitignored `.claude/skills/`, and every member repo is cloned to the gitignored `reference/aioriented/`.
 - [Video2Game](https://github.com/lovisdotio/video-to-game) (MIT): a Claude Code skill that turns an AI gameplay video into a Three.js browser game, at about 6 USD of fal calls per game; [Dockstack](calibration/2026-11-06-video2game/README.md) cost us 2.67 USD with the 3D built for free.
 - [Atlas](https://github.com/xikhar/atlas) (MIT): asset-creation skills for 3D models, PBR textures, character turnarounds and Three.js scenes.
 - [MCP for Blender](https://github.com/ahujasid/mcp-for-blender) (MIT): lets Claude Code drive a live Blender, see the result from several angles, and import Poly Haven, Sketchfab and Poly Pizza assets; works with Blender 3.0 and newer.
