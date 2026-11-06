@@ -14,6 +14,15 @@ The owner collects ideas here for building games, specifically blockchain games:
 - Because the repo is public, paraphrase posts and link to them instead of copying their text, and never commit screenshots of other people's work, keys or anything private.
 - Generation calls (fal, OpenAI and the like) are paid and need the owner's approval each time.
 
+## Traps found so far
+
+- Our pipeline and its done checks live in `WORKFLOW.md`; hands-on tests live in `calibration/` (start with [calibration/2026-11-05-crate](calibration/2026-11-05-crate/README.md)).
+- MCP for Blender is installed (local scope, `BLENDER_MCP_SAFE_MODE=1`, `DISABLE_TELEMETRY=true`; remove with `claude mcp remove blender -s local`).
+  Auto mode refuses to install MCP servers or Blender add-ons, so the owner runs those with `!`; the tools load only in a session started afterwards.
+- The add-on's server never starts under `blender -b`, so the bridge needs the Blender GUI.
+  Launch `/Applications/Blender.app/Contents/MacOS/Blender --addons blender_mcp` with `run_in_background` to enable it for that run without changing the owner's Blender preferences (not yet tried); it listens on localhost:9876.
+- Blender's look renders show shape, not final color: judge color and metal in Three.js with an environment map.
+
 ## Multica dashboard
 
 This project is mirrored on the owner's Multica dashboard (workspace Pandora) as project `5e65d424-8653-4e40-8aca-449c8e90891c`.
