@@ -16,15 +16,12 @@ The owner collects ideas here for building games, specifically blockchain games:
 
 ## Traps found so far
 
-- Our pipeline and its done checks live in `WORKFLOW.md`; hands-on tests live in `calibration/` (start with [calibration/2026-11-05-crate](calibration/2026-11-05-crate/README.md), then [calibration/2026-11-06-crate-bridge](calibration/2026-11-06-crate-bridge/README.md) for the live bridge).
+- `WORKFLOW.md` holds the pipeline, the Blender bridge's launch command, the safe-mode rules for bridge scripts and the done checks; read it before any asset work.
+  Hands-on tests live in `calibration/`: [the crate by script](calibration/2026-11-05-crate/README.md), then [the crate through the bridge](calibration/2026-11-06-crate-bridge/README.md), whose `build.py`, `checks.py` and `export.py` are the templates for new props.
 - MCP for Blender is installed (local scope, `BLENDER_MCP_SAFE_MODE=1`, `DISABLE_TELEMETRY=true`; remove with `claude mcp remove blender -s local`).
   Auto mode refuses to install MCP servers or Blender add-ons, so the owner runs those with `!`; the tools load only in a session started afterwards.
-- The add-on's server never starts under `blender -b`, so the bridge needs the Blender GUI.
-  Launch `BLENDERMCP_NO_UPDATE_CHECK=1 /Applications/Blender.app/Contents/MacOS/Blender --addons blender_mcp` with `run_in_background` to enable it for that run without changing the owner's Blender preferences; the add-on starts its server on localhost:9876 by itself about 50 s later (worked on 2026-11-06), and the variable skips its update check against GitHub.
-  Stop that Blender with TaskStop when done; it is the session's own process.
-- Safe mode rejects any name not bound in the same call, lambdas, `import time` and `open()`, so write each bridge call as one self-contained script, as in calibration 2.
-- Blender's look renders show shape, not final color: judge color and metal in Three.js with an environment map.
-  Workbench cavity and outlines also draw edges the engine never draws, so judge face-on details in Material Preview or the engine.
+- The bridge needs Blender's GUI, since its server never starts under `blender -b`: start it with `run_in_background`, which leaves the owner's Blender preferences unchanged, and stop it with TaskStop when done.
+- Workbench renders with cavity and outlines draw edges and colors the engine never shows, so judge face-on detail, color and metal in Material Preview or the Three.js check page, `calibration/2026-11-05-crate/viewer.html?src=<glb>`.
 
 ## Multica dashboard
 
