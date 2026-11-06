@@ -1,0 +1,200 @@
+[
+ {
+  "endpoint": "minimax/h3-max/text-to-video",
+  "name": "take1",
+  "seconds": 56.1,
+  "arguments": {
+   "duration": 10,
+   "resolution": "1080P",
+   "aspect_ratio": "16:9",
+   "prompt_expansion_mode": "disabled",
+   "seed": 101
+  },
+  "prompt": "Cozy low-poly 3D game, flat-shaded, warm dusk harbour: a small dock crane swings light tan wooden cargo crates with diagonal braces and dark metal corners out over a rocking barge and drops them one by one; the stack grows taller and sways with the waves, and a misplaced crate tumbles into the water with a splash. Steady side-on camera.",
+  "files": [
+   "video/take1.mp4"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "backdrop_sky",
+  "seconds": 40.8,
+  "arguments": {
+   "aspect_ratio": "21:9",
+   "resolution": "2K",
+   "output_format": "png",
+   "num_images": 1,
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab15627/vjCpETG2qe5hbHpODyYnP_f_001.jpg",
+    "https://v3b.fal.media/files/b/0ab15627/KNEP9Pkhl6ePviNiTo-58_f_020.jpg"
+   ]
+  },
+  "prompt": "Using the reference frames, paint only the far background of this harbour scene as one wide, empty backdrop plate: the warm peach dusk sky with the same big soft cumulus clouds, the low sun glowing in the haze just above the horizon, and a hazy, low silhouette of distant town buildings and trees along the horizon in the bottom fifth of the image. Remove the crane, the boat, the crates, the quay, the brick house, the street lamps and the water, so nothing stands in the foreground. Same stylized low-poly 3D game art style, colors and soft light as the references. No text.",
+  "files": [
+   "fal/backdrop_sky.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "houses",
+  "seconds": 35.1,
+  "arguments": {
+   "aspect_ratio": "21:9",
+   "resolution": "2K",
+   "output_format": "png",
+   "num_images": 1,
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab1562d/0KnNJGzF2LSdgQ_IWYq9d_f_001.jpg"
+   ]
+  },
+  "prompt": "The red-brick terraced houses from the left of the reference frame, alone: one straight row of four connected two-storey brick houses with tiled roofs, chimneys, white-framed windows, doors and a couple of street lamps, seen straight from the front so the row runs left to right. Isolated on a plain flat white background, full height from the pavement to the chimney tops, nothing cropped. Same stylized low-poly 3D game art style, brick color and warm dusk light as the reference. No people, no text.",
+  "files": [
+   "fal/houses.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "houses_cutout",
+  "seconds": 10.5,
+  "arguments": {
+   "image_url": "https://v3b.fal.media/files/b/0ab15632/FYGjqAJOKvCpj_NeJAGFF_houses.png"
+  },
+  "prompt": null,
+  "files": [
+   "fal/houses_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "harbour",
+  "seconds": 21.2,
+  "arguments": {
+   "text": "Calm harbour at dusk: gentle water lapping against a boat hull and a stone quay wall, a few distant seagulls, soft wind, very faint far-off town murmur. No music.",
+   "duration_seconds": 10,
+   "loop": true,
+   "prompt_influence": 0.5
+  },
+  "prompt": null,
+  "files": [
+   "fal/sfx/harbour.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "crane_motor",
+  "seconds": 5.8,
+  "arguments": {
+   "text": "An old electric dock crane: a steady low motor hum with soft winch gears whirring and a faint rope creak. No music.",
+   "duration_seconds": 4,
+   "loop": true,
+   "prompt_influence": 0.5
+  },
+  "prompt": null,
+  "files": [
+   "fal/sfx/crane_motor.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "release",
+  "seconds": 5.6,
+  "arguments": {
+   "text": "A heavy steel crane hook releasing a load: one metallic clunk with a short chain rattle.",
+   "duration_seconds": 1,
+   "loop": false,
+   "prompt_influence": 0.5
+  },
+  "prompt": null,
+  "files": [
+   "fal/sfx/release.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "land_crate",
+  "seconds": 6.2,
+  "arguments": {
+   "text": "A heavy wooden cargo crate dropped onto other wooden crates: one solid hollow wooden thud with a small creak.",
+   "duration_seconds": 1,
+   "loop": false,
+   "prompt_influence": 0.5
+  },
+  "prompt": null,
+  "files": [
+   "fal/sfx/land_crate.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "land_deck",
+  "seconds": 4.4,
+  "arguments": {
+   "text": "A heavy wooden crate landing on a steel boat deck: one deep dull thump with a faint metallic ring.",
+   "duration_seconds": 1,
+   "loop": false,
+   "prompt_influence": 0.5
+  },
+  "prompt": null,
+  "files": [
+   "fal/sfx/land_deck.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "tip",
+  "seconds": 3.5,
+  "arguments": {
+   "text": "A wooden crate tipping over the edge of a stack: a short wooden scrape and a knock as it topples.",
+   "duration_seconds": 1.5,
+   "loop": false,
+   "prompt_influence": 0.5
+  },
+  "prompt": null,
+  "files": [
+   "fal/sfx/tip.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "splash",
+  "seconds": 3.5,
+  "arguments": {
+   "text": "A heavy wooden crate falling into deep harbour water: one big deep splash with water settling after.",
+   "duration_seconds": 2,
+   "loop": false,
+   "prompt_influence": 0.5
+  },
+  "prompt": null,
+  "files": [
+   "fal/sfx/splash.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "horn",
+  "seconds": 5.0,
+  "arguments": {
+   "text": "A small tugboat's deep ship horn blowing two short blasts across a harbour.",
+   "duration_seconds": 3,
+   "loop": false,
+   "prompt_influence": 0.5
+  },
+  "prompt": null,
+  "files": [
+   "fal/sfx/horn.mp3"
+  ]
+ },
+ {
+  "endpoint": "elevenlabs/music/v2.5",
+  "name": "harbour_theme",
+  "seconds": 9.0,
+  "arguments": {
+   "music_length_ms": 60000,
+   "force_instrumental": true
+  },
+  "prompt": "Calm, cozy instrumental for a relaxing harbour stacking game at dusk: warm fingerpicked acoustic guitar and soft accordion over gentle brushed percussion and upright bass, a light sea-shanty lilt in 6/8, unhurried and warm, steady from start to end so it loops, no vocals.",
+  "files": [
+   "fal/music/harbour_theme.mp3"
+  ]
+ }
+]

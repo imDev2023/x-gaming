@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dockstack</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { --ink: #fff4e4; --shade: rgba(60, 30, 12, 0.55); }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #e3b68b; }
+  body { font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink);
+    -webkit-user-select: none; user-select: none; touch-action: none; -webkit-tap-highlight-color: transparent; }
+  canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; }
+  .overlay { position: fixed; left: 0; right: 0; text-align: center; pointer-events: none;
+    text-shadow: 0 2px 12px var(--shade), 0 1px 2px var(--shade); transition: opacity 0.6s ease; }
+  #title { top: 9vh; }
+  #title h1 { margin: 0; font-size: clamp(40px, 7vw, 84px); font-weight: 800; letter-spacing: 0.02em; }
+  #title p, #end p { margin: 10px 16px 0; font-size: clamp(15px, 2vw, 20px); font-weight: 600; opacity: 0.95; }
+  #end p { margin: 8px 0 0; }
+  #end { top: 16vh; left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px);
+    padding: 14px 28px 18px; border-radius: 18px; background: rgba(58, 30, 14, 0.42); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  #end .line { margin: 0; font-size: clamp(24px, 4vw, 42px); font-weight: 800; }
+  .hidden { opacity: 0; }
+  #hud { position: fixed; top: max(14px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left));
+    display: flex; gap: 5px; pointer-events: none; transition: opacity 0.6s ease; }
+  #hud i { width: 12px; height: 12px; border-radius: 2px; box-sizing: border-box; border: 2px solid rgba(255, 244, 228, 0.75);
+    box-shadow: 0 1px 3px var(--shade); }
+  #hud i.placed { background: #fff4e4; border-color: #fff4e4; }
+  #hud i.lost { border-color: rgba(120, 40, 20, 0.7); background: rgba(120, 40, 20, 0.35); }
+  #hud i.now { border-color: #ffd27a; }
+  #debug { position: fixed; right: 10px; bottom: 8px; font: 12px ui-monospace, Menlo, monospace; color: #fff; opacity: 0.8; pointer-events: none; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="title" class="overlay"><h1>Dockstack</h1><p>Tap, click or press Space to drop the crate</p></div>
+<div id="end" class="overlay hidden"><p class="line"></p><p>Tap to load the shipment again</p></div>
+<div id="hud" class="hidden"></div>
+<div id="debug"></div>
+<script type="module">
+// Dockstack: the video's harbour, rebuilt as a stacking game around sim.js.
+// The simulation runs at a fixed 60 ticks a second in integers; everything here only
+// draws it and plays its sounds. URL parameters: ?seed=N (default: today's date, UTC),
+// ?autostart, ?mute, ?debug.
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import * as SIM from './sim.js';
+
+const Q = new URLSearchParams(location.search);
+const now = new Date();
+const DAILY = now.getUTCFullYear() * 10000 + (now.getUTCMonth() + 1) * 100 + now.getUTCDate();
+const SEED = Q.has('seed') ? Number(Q.get('seed')) >>> 0 : DAILY;
+const M = (um) => um / SIM.UM; // micrometres to metres
+
+// Measured from the video's frames (SPEC.md).
+const PALETTE = { sky: 0xe3b68b, haze: 0xf0bd74, waterNear: 0x2c3431, waterFar: 0xe5c184, foam: 0xd9c99a, rope: 0x2a1d14, dust: 0xc9a27a };
+// Kit pieces seen side-on: depth along Z, from the kit's briefs.
+const CRATE_MODEL = { crate: 'crate_01', half: 'crate_half_01', long: 'crate_long_01', lid: 'lid_box_01', planks: 'plank_stack_01' };
+const CRATE_DEPTH = { crate: 1, half: 1, long: 1, lid: 0.5, planks: 0.5 };
+// Dock layout, from blender/build.py, in Three.js axes (x right, y up, z toward the camera).
+const QUAY_AT = new THREE.Vector3(-7.4, 1.6, 0);
+const CRANE_AT = new THREE.Vector3(-10, 1.6, 0);
+const HINGE = new THREE.Vector3(-8.5, 7.0, 0);
+const JIB_LEN = 12, ROPE_DROP = 0.35, SLING_H = 0.9, HOOK_TOP = 0.85;
+
+// ---------- renderer, scene, camera, light, post ----------
+const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.NoToneMapping; // the painted sky plate keeps its colors; the grade pass shapes the rest
+renderer.shadowMap.enabled = true;
+renderer.info.autoReset = false; // the composer renders several passes a frame; count them all
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(PALETTE.sky);
+scene.fog = new THREE.Fog(PALETTE.haze, 45, 210);
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 600);
+
+// As in the video's pairs: a warm key from the front-left and above lights the crates'
+// faces, the bright haze behind adds a rim, and a warm sky fills the shade.
+const sun = new THREE.DirectionalLight(0xffd9a8, 2.9);
+sun.position.set(-18, 20, 22);
+sun.target.position.set(-2, 2, 0);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -18, right: 16, top: 16, bottom: -8, near: 1, far: 90 });
+sun.shadow.bias = -0.0004;
+sun.shadow.normalBias = 0.02;
+const rim = new THREE.DirectionalLight(0xffcf9a, 0.8);
+rim.position.set(-10, 12, -40);
+scene.add(sun, sun.target, rim, new THREE.HemisphereLight(0xffd7a8, 0x4a3020, 1.05));
+
+const target = new THREE.WebGLRenderTarget(innerWidth, innerHeight, { type: THREE.HalfFloatType, samples: 4 });
+const composer = new EffectComposer(renderer, target);
+composer.addPass(new RenderPass(scene, camera));
+const grade = new ShaderPass({
+  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uLift: { value: new THREE.Vector3(0.012, 0.007, 0.003) },
+    uGain: { value: new THREE.Vector3(1.0, 0.97, 0.92) }, uVignette: { value: 0.32 }, uGrain: { value: 0.022 } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uTime, uVignette, uGrain; uniform vec3 uLift, uGain; varying vec2 vUv;
+    float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+    void main(){
+      vec3 c = texture2D(tDiffuse, vUv).rgb * uGain + uLift;
+      float m = max(c.r, max(c.g, c.b));                                    // soft shoulder on the brightest channel,
+      if (m > .8) c *= (.8 + (m - .8) / (1. + (m - .8) * 1.5)) / m;          // so bright warm colors keep their hue
+      c *= 1. - uVignette * smoothstep(.35, .95, length((vUv - .5) * vec2(1.15, 1.)) * 1.2);
+      c += (h(vUv * 997. + fract(uTime)) - .5) * uGrain * (.4 + c);       // grain, lighter in the shadows
+      gl_FragColor = vec4(max(c, 0.), 1.);
+    }`,
+});
+composer.addPass(grade);
+composer.addPass(new OutputPass());
+
+// ---------- loading ----------
+const gltf = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder); // models are meshopt-compressed by build.sh
+const tex = new THREE.TextureLoader();
+const modelNames = ['crane_01', 'crane_jib_01', 'crane_hook_01', 'boat_01', 'quay_01'];
+const kitNames = ['crate_01', 'crate_half_01', 'crate_long_01', 'lid_box_01', 'plank_stack_01', 'pallet_01'];
+const MODELS = {};
+async function loadModels() {
+  const all = [...modelNames.map((n) => [n, `assets/models/${n}.glb`]), ...kitNames.map((n) => [n, `assets/models/kit/${n}.glb`])];
+  await Promise.all(all.map(async ([n, url]) => {
+    const g = await gltf.loadAsync(url);
+    g.scene.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    MODELS[n] = g.scene;
+  }));
+}
+const clone = (n) => MODELS[n].clone(true);
+const loadTex = async (url) => { const t = await tex.loadAsync(url); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; };
+
+// ---------- audio ----------
+const audio = { ctx: null, buffers: {}, master: null, loops: {}, muted: Q.has('mute') };
+const SOUNDS = ['harbour', 'crane_motor', 'release', 'land_crate', 'land_deck', 'tip', 'splash', 'horn', 'music'];
+async function loadAudio() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  audio.ctx = new AC();
+  audio.master = audio.ctx.createGain();
+  audio.master.gain.value = audio.muted ? 0 : 1;
+  audio.master.connect(audio.ctx.destination);
+  await Promise.all(SOUNDS.map(async (n) => {
+    try {
+      const data = await (await fetch(`assets/audio/${n}.mp3`)).arrayBuffer();
+      audio.buffers[n] = await audio.ctx.decodeAudioData(data);
+    } catch (e) { console.warn('sound', n, e); }
+  }));
+}
+function play(name, gain = 1, rate = 1) {
+  const b = audio.buffers[name];
+  if (!audio.ctx || !b) return;
+  const src = audio.ctx.createBufferSource();
+  const g = audio.ctx.createGain();
+  src.buffer = b; src.playbackRate.value = rate; g.gain.value = gain;
+  src.connect(g).connect(audio.master);
+  src.start();
+}
+function loop(name, gain) {
+  const b = audio.buffers[name];
+  if (!audio.ctx || !b || audio.loops[name]) return;
+  const src = audio.ctx.createBufferSource();
+  const g = audio.ctx.createGain();
+  src.buffer = b; src.loop = true; g.gain.value = gain;
+  src.connect(g).connect(audio.master);
+  src.start();
+  audio.loops[name] = g;
+}
+function startAudio() {
+  if (!audio.ctx) return;
+  audio.ctx.resume();
+  loop('harbour', 0.9); loop('music', 0.55); loop('crane_motor', 0);
+}
+
+// ---------- world ----------
+const world = { boat: new THREE.Group(), stack: [], active: null, fx: [], ropes: {}, outcomes: [] };
+
+function ropeMesh(material) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 1, 5, 1, true), material);
+  m.castShadow = true;
+  return m;
+}
+const ropeMat = new THREE.MeshLambertMaterial({ color: PALETTE.rope });
+const UP = new THREE.Vector3(0, 1, 0);
+function setRope(m, a, b) {
+  const d = new THREE.Vector3().subVectors(b, a);
+  const len = d.length();
+  m.visible = len > 0.01;
+  if (!m.visible) return;
+  m.position.copy(a).addScaledVector(d, 0.5);
+  m.scale.set(1, len, 1);
+  m.quaternion.setFromUnitVectors(UP, d.divideScalar(len));
+}
+
+function waterMaterial() {
+  return new THREE.ShaderMaterial({
+    fog: true,
+    uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {
+      uTime: { value: 0 }, uNear: { value: new THREE.Color(PALETTE.waterNear) },
+      uFar: { value: new THREE.Color(PALETTE.waterFar) }, uFoam: { value: new THREE.Color(PALETTE.foam) },
+    }]),
+    vertexShader: `#include <fog_pars_vertex>
+      varying vec3 vWorld;
+      void main(){ vec4 w = modelMatrix * vec4(position, 1.); vWorld = w.xyz; vec4 mvPosition = viewMatrix * w;
+        gl_Position = projectionMatrix * mvPosition;
+        #include <fog_vertex>
+      }`,
+    fragmentShader: `uniform float uTime; uniform vec3 uNear, uFar, uFoam; varying vec3 vWorld;
+      #include <fog_pars_fragment>
+      float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+        return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
+      void main(){
+        float d = clamp((6. - vWorld.z) / 150., 0., 1.);
+        vec3 col = mix(uNear, uFar, pow(d, .45));
+        vec2 p = vec2(vWorld.x * .16 + uTime * .05, vWorld.z * 1.4 - uTime * .08);
+        float s = n(p) * .6 + n(p * 2.3 + 7.) * .4;
+        float streak = smoothstep(.64, .8, s) * (1. - d * .8);
+        col = mix(col, uFoam, streak * .5);
+        gl_FragColor = vec4(col, 1.);
+        #include <fog_fragment>
+      }`,
+  });
+}
+
+let water, foamBoat, foamQuay;
+function buildWorld(sky, houses) {
+  // Painted backdrop from fal: sky, sun haze and the far town. Unlit, unfogged.
+  const w = 460, h = w * sky.image.height / sky.image.width; // wide enough for the 45-degree lens at any aspect
+  const backdrop = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: sky, fog: false }));
+  backdrop.position.set(-62, h / 2 - 4, -170);
+  scene.add(backdrop);
+  // The brick terrace along the quay, cut out of a fal image, repeated into the distance.
+  const hw = 24, hh = hw * houses.image.height / houses.image.width;
+  const houseMat = new THREE.MeshBasicMaterial({ map: houses, alphaTest: 0.5, color: 0xe8d2bc });
+  for (const [x, z, flip] of [[-22.5, -4.2, 1], [-27, -19, -1], [-31, -36, 1]]) {
+    const row = new THREE.Mesh(new THREE.PlaneGeometry(hw, hh), houseMat);
+    row.position.set(x, QUAY_AT.y + hh / 2 - hh * 0.105, z);
+    row.scale.x = flip;
+    scene.add(row);
+  }
+
+  water = new THREE.Mesh(new THREE.PlaneGeometry(500, 400), waterMaterial());
+  water.rotation.x = -Math.PI / 2;
+  water.position.set(0, 0, -150);
+  scene.add(water);
+  const foamMat = new THREE.MeshBasicMaterial({ color: 0xe9e2c8, transparent: true, opacity: 0.45, depthWrite: false });
+  foamBoat = new THREE.Mesh(new THREE.PlaneGeometry(11.0, 0.12), foamMat);
+  foamBoat.rotation.x = -Math.PI / 2;
+  foamBoat.position.set(0.2, 0.02, 2.36);
+  foamQuay = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 60), new THREE.MeshBasicMaterial({ color: 0xe9e2c8, transparent: true, opacity: 0.25, depthWrite: false }));
+  foamQuay.rotation.x = -Math.PI / 2;
+  foamQuay.position.set(QUAY_AT.x + 0.08, 0.02, -15);
+  scene.add(foamBoat, foamQuay);
+
+  // From past the camera into the haze, so its cut end never shows.
+  for (let i = -1; i < 5; i++) { const quay = clone('quay_01'); quay.position.copy(QUAY_AT).setZ(-10 * i); scene.add(quay); }
+  const crane = clone('crane_01'); crane.position.copy(CRANE_AT); scene.add(crane);
+  world.jib = clone('crane_jib_01'); world.jib.position.copy(HINGE); scene.add(world.jib);
+  world.hook = clone('crane_hook_01'); scene.add(world.hook);
+  world.boat.add(clone('boat_01'));
+  scene.add(world.boat);
+
+  // Quay dressing from the crate kit.
+  const dress = [['pallet_01', -13.2, 0.0, 1.6, 0.2], ['crate_01', -13.2, 0.15, 1.6, 0.2], ['crate_half_01', -13.3, 1.15, 1.5, -0.1],
+    ['plank_stack_01', -14.6, 0, 3.2, 1.57], ['crate_long_01', -15.2, 0, 0.2, 0.05], ['lid_box_01', -12.0, 0, 3.6, 0.4]];
+  for (const [n, x, y, z, r] of dress) {
+    const o = clone(n); o.position.set(x, QUAY_AT.y + y, z); o.rotation.y = r; scene.add(o);
+  }
+
+  // Ropes: hoist, sling, luffing ropes, and the boat's rigging.
+  world.ropes.hoist = ropeMesh(ropeMat);
+  world.ropes.sling = [0, 1, 2, 3].map(() => ropeMesh(ropeMat));
+  world.ropes.luff = [0, 1].map(() => ropeMesh(ropeMat));
+  scene.add(world.ropes.hoist, ...world.ropes.sling, ...world.ropes.luff);
+  // Stern rigging only: a stay to the bow would cross the whole play area.
+  for (const [a, b] of [[[4.4, 8.75, 0], [6.4, 1.15, 0]], [[4.4, 7.95, -0.75], [6.0, 3.45, -1.8]], [[4.4, 7.95, 0.75], [6.0, 3.45, 1.8]]]) {
+    const r = ropeMesh(ropeMat); setRope(r, new THREE.Vector3(...a), new THREE.Vector3(...b)); world.boat.add(r);
+  }
+
+  // Particles for dust and splashes.
+  const n = 400;
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 4), 4));
+  const dot = document.createElement('canvas'); dot.width = dot.height = 64;
+  const g2 = dot.getContext('2d'), grad = g2.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.6, 'rgba(255,255,255,0.8)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
+  g2.fillStyle = grad; g2.fillRect(0, 0, 64, 64);
+  const mat = new THREE.PointsMaterial({ size: 0.2, map: new THREE.CanvasTexture(dot), vertexColors: true, transparent: true, depthWrite: false });
+  world.particles = { points: new THREE.Points(geo, mat), list: [], n };
+  world.particles.points.frustumCulled = false;
+  scene.add(world.particles.points);
+  world.rings = [];
+}
+
+function crateMesh(type) {
+  const o = clone(CRATE_MODEL[type]);
+  o.userData.type = type;
+  return o;
+}
+
+// ---------- effects ----------
+const tmpColor = new THREE.Color();
+function burst(pos, count, color, speed, up, life) {
+  tmpColor.set(color);
+  for (let i = 0; i < count && world.particles.list.length < world.particles.n; i++) {
+    const a = Math.random() * Math.PI * 2;
+    world.particles.list.push({
+      p: pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.6, Math.random() * 0.1, (Math.random() - 0.5) * 0.6)),
+      v: new THREE.Vector3(Math.cos(a) * speed * Math.random(), up * (0.5 + Math.random()), Math.sin(a) * speed * Math.random()),
+      c: tmpColor.clone(), life, age: 0,
+    });
+  }
+}
+const crownGeo = (() => {
+  const g = new THREE.CylinderGeometry(0.9, 0.35, 1, 14, 1, true);
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) if (p.getY(i) > 0) p.setY(i, 0.5 + (i % 2 ? 0.55 : -0.05));
+  g.translate(0, 0.5, 0);
+  return g;
+})();
+function splash(x, z) {
+  burst(new THREE.Vector3(x, 0.05, z), 140, PALETTE.foam, 2.6, 5.0, 1.2);
+  const crown = new THREE.Mesh(crownGeo, new THREE.MeshBasicMaterial({ color: 0xc9dccf, transparent: true, opacity: 0.95, side: THREE.DoubleSide, depthWrite: false }));
+  crown.position.set(x, 0, z);
+  crown.userData = { age: 0, crown: true };
+  scene.add(crown); world.rings.push(crown);
+  for (const [r0, delay] of [[0.4, 0], [0.25, 0.18]]) {
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.8, 1, 32), new THREE.MeshBasicMaterial({ color: 0xe9e2c8, transparent: true, opacity: 0.9, depthWrite: false }));
+    ring.rotation.x = -Math.PI / 2; ring.position.set(x, 0.03, z); ring.scale.setScalar(r0);
+    ring.userData = { age: -delay };
+    scene.add(ring); world.rings.push(ring);
+  }
+  play('splash', 1.0, 0.92 + Math.random() * 0.16);
+}
+let shake = 0;
+function dust(x, y, z, strength) {
+  burst(new THREE.Vector3(x, y, z), Math.round(16 * strength), PALETTE.dust, 1.6, 0.9, 0.7);
+  shake = Math.min(0.12, shake + 0.05 * strength);
+}
+function updateFx(dt) {
+  const P = world.particles;
+  const pos = P.points.geometry.attributes.position, col = P.points.geometry.attributes.color;
+  P.list = P.list.filter((q) => (q.age += dt) < q.life);
+  for (let i = 0; i < P.n; i++) {
+    const q = P.list[i];
+    if (!q) { pos.setXYZ(i, 0, -50, 0); continue; }
+    q.v.y -= 9.8 * dt * 0.6; q.v.multiplyScalar(1 - 1.5 * dt);
+    q.p.addScaledVector(q.v, dt);
+    if (q.p.y < 0.02) { q.p.y = 0.02; q.v.y = 0; }
+    pos.setXYZ(i, q.p.x, q.p.y, q.p.z);
+    col.setXYZW(i, q.c.r, q.c.g, q.c.b, 1 - q.age / q.life);
+  }
+  pos.needsUpdate = true; col.needsUpdate = true;
+  for (const ring of world.rings) {
+    ring.userData.age += dt;
+    const a = Math.max(0, ring.userData.age);
+    if (ring.userData.crown) {
+      // The crown shoots up, widens, then drops back and fades.
+      const up = Math.sin(Math.min(1, a / 0.7) * Math.PI);
+      ring.scale.set(0.6 + a * 1.6, 0.05 + up * 1.4, 0.6 + a * 1.6);
+      ring.material.opacity = Math.max(0, 0.95 - a * 0.9);
+    } else {
+      ring.scale.setScalar(0.4 + a * 3.2);
+      ring.material.opacity = Math.max(0, 0.9 - a * 0.7);
+    }
+  }
+  world.rings = world.rings.filter((r) => (r.userData.age < 1.2 ? true : (scene.remove(r), r.geometry.dispose(), r.material.dispose(), false)));
+
+  // Lost crates: tip over the edge, fall, then splash or break on the deck.
+  for (const f of world.fx) {
+    f.age += dt;
+    if (f.kind === 'tip' && f.angle < Math.PI / 2) {
+      f.spin += 9 * dt; f.angle = Math.min(Math.PI / 2, f.angle + f.spin * dt);
+      f.pivot.rotation.z = -f.side * f.angle;
+      if (f.angle >= Math.PI / 2) {
+        // Let go of the pivot: continue as a free body from where it is now.
+        const wp = new THREE.Vector3(), wq = new THREE.Quaternion();
+        f.mesh.getWorldPosition(wp); f.mesh.getWorldQuaternion(wq);
+        scene.attach(f.mesh); f.mesh.position.copy(wp); f.mesh.quaternion.copy(wq);
+        scene.remove(f.pivot);
+        f.kind = 'fall'; f.v = new THREE.Vector3(f.side * 1.3, 0.4, 0); f.w = f.side * -3;
+        play('tip', 0.8, 0.95 + Math.random() * 0.1);
+      }
+    } else if (f.kind === 'fall') {
+      f.v.y -= 9.8 * dt;
+      f.mesh.position.addScaledVector(f.v, dt);
+      f.mesh.rotation.z += f.w * dt;
+      const relX = f.mesh.position.x - world.boat.position.x;
+      const overDeck = relX > M(SIM.DECK.left) && relX < M(SIM.DECK.right);
+      const floor = overDeck ? world.boat.position.y + M(SIM.DECK.y) + 0.3 : 0.1;
+      if (f.mesh.position.y < floor) {
+        if (overDeck) { dust(f.mesh.position.x, floor, 0, 1.4); play('land_deck', 1.2); }
+        else splash(f.mesh.position.x, 0.4);
+        f.kind = overDeck ? 'gone' : 'sink'; f.sinkAge = 0;
+        if (overDeck) scene.remove(f.mesh);
+      }
+    } else if (f.kind === 'sink') {
+      f.sinkAge += dt; f.mesh.position.y -= dt * 0.8;
+      if (f.sinkAge > 1.2) { scene.remove(f.mesh); f.kind = 'gone'; }
+    }
+  }
+  world.fx = world.fx.filter((f) => f.kind !== 'gone');
+}
+
+// ---------- game state ----------
+const ui = { title: document.getElementById('title'), end: document.getElementById('end'), hud: document.getElementById('hud'), debug: document.getElementById('debug') };
+let sim = null, prev = null, phase = 'loading', pressed = false, acc = 0, simTime = 0;
+let hookY = 0, hookYTarget = 0, lastHookX = 0, departX = 0;
+// With ?debug, check every frame that drawing left the simulation's state untouched:
+// a server replays that state, so the renderer must only ever read it.
+const GUARD = Q.has('debug');
+let guardHash = null;
+
+function snapshot(s) {
+  return { hookX: s.hookX, boatX: s.boatX, boatY: s.boatY, crateY: s.crate ? s.crate.y : 0, crateX: s.crate ? s.crate.x : 0 };
+}
+function hangTop(s, index) {
+  // Top of the crate waiting on the hook for crate `index`, in metres.
+  const type = s.queue[Math.min(index, SIM.SHIPMENT - 1)];
+  return M(SIM.DECK.y + SIM.stackTop(s) + SIM.HANG + SIM.CRATES[type].h);
+}
+function hud() {
+  ui.hud.innerHTML = '';
+  for (let i = 0; i < SIM.SHIPMENT; i++) {
+    const el = document.createElement('i');
+    if (world.outcomes[i]) el.className = world.outcomes[i];
+    else if (sim && i === sim.index && sim.phase !== 'done') el.className = 'now';
+    ui.hud.appendChild(el);
+  }
+}
+function newRun() {
+  for (const m of world.stack) world.boat.remove(m);
+  world.stack = [];
+  world.outcomes = [];
+  if (world.active) scene.remove(world.active);
+  sim = SIM.createRun(SEED);
+  prev = snapshot(sim);
+  guardHash = GUARD ? SIM.hash(sim) : null;
+  world.active = crateMesh(sim.crate.type);
+  scene.add(world.active);
+  hookY = hookYTarget = hangTop(sim, 0);
+  departX = 0;
+  world.boat.position.set(0, 0, 0);
+  simTime = 0;
+  hud();
+}
+function start() {
+  if (phase === 'playing') return;
+  if (phase === 'done') newRun();
+  phase = 'playing';
+  ui.title.classList.add('hidden'); ui.end.classList.add('hidden'); ui.hud.classList.remove('hidden');
+  startAudio();
+}
+
+function onEvents(events) {
+  for (const e of events) {
+    if (e.type === 'release') {
+      play('release', 0.9, 0.95 + Math.random() * 0.1);
+    } else if (e.type === 'land') {
+      const m = world.active; world.active = null;
+      world.boat.attach(m);
+      m.position.set(M(e.x), M(SIM.DECK.y + e.bottom), 0);
+      m.rotation.set(0, 0, 0);
+      m.userData.squash = 0.18; m.userData.wobble = e.wobble ? 1 : 0;
+      world.stack.push(m);
+      play(e.on === 'deck' ? 'land_deck' : 'land_crate', e.on === 'deck' ? 1.3 : 1.0, 0.9 + Math.random() * 0.2);
+      const wp = m.getWorldPosition(new THREE.Vector3());
+      dust(wp.x, wp.y + 0.05, 0.5, e.on === 'deck' ? 1.2 : 0.8);
+      world.outcomes[sim.index] = 'placed';
+    } else if (e.type === 'tip') {
+      const m = world.active; world.active = null;
+      const lost = sim.lost[sim.lost.length - 1];
+      world.outcomes[sim.index] = 'lost';
+      // Pivot about the support's edge in the boat's frame, then hand over to free fall.
+      const pivot = new THREE.Group();
+      pivot.position.set(M(lost.edge), M(SIM.DECK.y + lost.bottom), 0);
+      world.boat.add(pivot);
+      pivot.attach(m);
+      m.position.set(M(e.x - lost.edge), 0, 0);
+      m.rotation.set(0, 0, 0);
+      scene.attach(pivot);
+      world.fx.push({ kind: 'tip', mesh: m, pivot, side: e.side, angle: 0, spin: 1.5, age: 0 });
+      play('land_crate', 0.7, 1.1);
+    } else if (e.type === 'miss') {
+      const m = world.active; world.active = null;
+      world.outcomes[sim.index] = 'lost';
+      world.fx.push({ kind: 'fall', mesh: m, v: new THREE.Vector3(0, -M(SIM.G) * 60 * 30, 0), w: 0.4, age: 0 });
+    } else if (e.type === 'next') {
+      world.active = crateMesh(e.crate);
+      scene.add(world.active);
+    } else if (e.type === 'depart') {
+      play('horn', 0.9);
+    } else if (e.type === 'done') {
+      phase = 'done';
+      const height = M(SIM.stackTop(sim)).toFixed(1);
+      ui.end.querySelector('.line').textContent = `Loaded ${sim.placed} of ${SIM.SHIPMENT} · stack ${height} m`;
+      ui.end.classList.remove('hidden');
+    }
+    if (['land', 'tip', 'miss', 'next', 'depart'].includes(e.type)) hud();
+  }
+}
+
+function tick() {
+  prev = snapshot(sim);
+  const press = pressed && sim.phase === 'swing';
+  pressed = false; // a press outside a swing is dropped, never carried into the next one
+  onEvents(SIM.step(sim, press));
+  if (sim.phase === 'settle' || sim.phase === 'swing') hookYTarget = hangTop(sim, sim.index + (sim.phase === 'settle' ? 1 : 0));
+  if (GUARD) guardHash = SIM.hash(sim);
+}
+
+// ---------- input ----------
+function press() {
+  if (phase === 'title' || phase === 'done') { start(); return; }
+  if (phase === 'playing') pressed = true;
+}
+addEventListener('keydown', (e) => {
+  if (e.repeat) return;
+  if (e.code === 'Space' || e.code === 'Enter' || e.code === 'ArrowDown') { e.preventDefault(); press(); }
+  else if (e.code === 'KeyR' && phase === 'done') start();
+  else if (e.code === 'KeyM' && audio.master) { audio.muted = !audio.muted; audio.master.gain.value = audio.muted ? 0 : 1; }
+});
+addEventListener('pointerdown', (e) => { e.preventDefault(); press(); }, { passive: false });
+let padWas = false;
+function pollPad() {
+  const pad = navigator.getGamepads?.()[0];
+  const down = !!(pad && (pad.buttons[0]?.pressed || pad.buttons[9]?.pressed));
+  if (down && !padWas) press();
+  padWas = down;
+}
+
+// ---------- frame ----------
+const lerp = THREE.MathUtils.lerp, damp = THREE.MathUtils.damp;
+const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
+let lift = 0, wall = 0, frames = 0, fpsT = 0, fps = 0;
+
+function placeCamera(dt) {
+  // As in the video: eye 2 m above the deck, above the quay's top, from close in
+  // with a wide lens; the hull's top sits about 70% down the frame. The camera rises and
+  // backs off as the stack grows, so the waiting crate and its hook stay in frame.
+  // Once the boat has sailed, settle back to the opening framing for a calm end shot.
+  const sailed = sim && sim.phase === 'done';
+  const hookTop = sim && !sailed ? M(SIM.DECK.y + SIM.stackTop(sim) + SIM.HANG + SIM.UM) + SLING_H + HOOK_TOP + 0.3 : 5.6;
+  lift = damp(lift, Math.max(0, hookTop - 6.1), 1.5, dt);
+  const aspect = camera.aspect;
+  const tanHalf = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const drift = Math.sin(wall * 0.06) * 0.3;
+  if (aspect >= 1.2) {
+    // Landscape: x from about -9 to 3.8 in frame, the video's framing.
+    const dist = Math.max(9.2, 6.4 / (tanHalf * aspect)) + lift * 0.7;
+    camPos.set(-2.6 + drift, 2.8 + lift * 0.8, dist);
+    camLook.set(-2.4 + drift * 0.6, 2.3 + lift, 0);
+  } else {
+    // Portrait: frame only the play span, bow to wheelhouse, and keep the deck about
+    // 70% down the screen, so the sky above is room for the stack to grow.
+    const dist = 4.3 / (tanHalf * aspect) + lift * 0.7;
+    const y = 1.3 + 0.4 * dist * tanHalf + lift;
+    camPos.set(-2.2 + drift * 0.5, y + 0.4, dist);
+    camLook.set(-2.2 + drift * 0.3, y, 0);
+  }
+  shake = Math.max(0, shake - dt * 0.6);
+  camPos.y += (Math.random() - 0.5) * shake;
+  camera.position.copy(camPos);
+  camera.lookAt(camLook);
+}
+
+function draw(dt, alpha) {
+  const s = sim;
+  const hookX = M(lerp(prev.hookX, s.hookX, alpha));
+  const boatX = M(lerp(prev.boatX, s.boatX, alpha));
+  const boatY = M(lerp(prev.boatY, s.boatY, alpha));
+  if (s.phase === 'depart' || s.phase === 'done') {
+    const t = (s.phase === 'done' ? SIM.DEPART : s.phaseTick + alpha) / SIM.TICK_HZ;
+    departX = 0.5 * 1.9 * t * t;
+  }
+  world.boat.position.set(boatX + departX, boatY, 0);
+  world.boat.rotation.z = Math.sin(wall * 1.05) * 0.006 + (s.boatY / 60_000) * 0.004; // roll: drawn, never simulated
+  foamBoat.position.x = 0.2 + boatX + departX;
+  foamBoat.material.opacity = 0.4 + Math.sin(wall * 2.2) * 0.1;
+
+  // Hook height eases between hang heights while the hook fetches the next crate.
+  if (s.phase === 'swing') hookY = hookYTarget;
+  else hookY = damp(hookY, hookYTarget, 3, dt);
+  const hookOrigin = new THREE.Vector3(hookX, hookY + SLING_H, 0);
+  if (s.phase === 'fall' || s.phase === 'settle') hookOrigin.y += Math.min(0.25, (s.phase === 'fall' ? s.phaseTick : 12) * 0.02);
+  world.hook.position.copy(hookOrigin);
+
+  // Luff the jib so its rope point sits right above the hook.
+  let th = Math.acos(THREE.MathUtils.clamp((hookX - HINGE.x) / JIB_LEN, -1, 1));
+  for (let i = 0; i < 2; i++) th = Math.acos(THREE.MathUtils.clamp((hookX - HINGE.x - ROPE_DROP * Math.sin(th)) / JIB_LEN, -1, 1));
+  world.jib.rotation.z = th;
+  const tip = new THREE.Vector3(JIB_LEN, -ROPE_DROP, 0).applyAxisAngle(new THREE.Vector3(0, 0, 1), th).add(HINGE);
+  setRope(world.ropes.hoist, tip, new THREE.Vector3(hookX, hookOrigin.y + HOOK_TOP, 0));
+  const head = new THREE.Vector3(JIB_LEN, 0.3, 0).applyAxisAngle(new THREE.Vector3(0, 0, 1), th).add(HINGE);
+  world.ropes.luff.forEach((r, i) => setRope(r, new THREE.Vector3(CRANE_AT.x - 0.5, CRANE_AT.y + 7.55, i ? 0.55 : -0.55), head.clone().setZ(i ? 0.25 : -0.25)));
+
+  // The active crate hangs on the sling, or falls.
+  const c = world.active;
+  if (c) {
+    const type = c.userData.type, w = M(SIM.CRATES[type].w), h = M(SIM.CRATES[type].h), d = CRATE_DEPTH[type];
+    let y;
+    if (s.phase === 'fall') y = M(lerp(prev.crateY, s.crate.y, alpha));
+    else if (s.phase === 'swing') y = hookY - h;
+    else y = hookY - h;
+    const x = s.phase === 'fall' ? M(s.crate.x) : hookX;
+    c.position.set(x, y, 0);
+    c.rotation.z = s.phase === 'swing' ? Math.sin(wall * 2.4) * 0.012 : c.rotation.z;
+    const attached = s.phase === 'swing' || s.phase === 'settle';
+    world.ropes.sling.forEach((r, i) => {
+      const cx = x + (i & 1 ? 1 : -1) * (w / 2 - 0.08), cz = (i & 2 ? 1 : -1) * (d / 2 - 0.08);
+      const end = attached ? new THREE.Vector3(cx, y + h, cz) : new THREE.Vector3(hookX + (i & 1 ? 0.1 : -0.1), hookOrigin.y - 0.75, (i & 2 ? 0.06 : -0.06));
+      setRope(r, hookOrigin, end);
+    });
+  } else {
+    world.ropes.sling.forEach((r, i) => setRope(r, hookOrigin, new THREE.Vector3(hookX + (i & 1 ? 0.1 : -0.1), hookOrigin.y - 0.75, (i & 2 ? 0.06 : -0.06))));
+  }
+
+  // Landed crates settle with a small squash, and a near-edge landing wobbles.
+  for (const m of world.stack) {
+    if (m.userData.squash > 0) { m.userData.squash = Math.max(0, m.userData.squash - dt); m.scale.y = 1 - Math.sin((m.userData.squash / 0.18) * Math.PI) * 0.04; }
+    if (m.userData.wobble > 0) { m.userData.wobble = Math.max(0, m.userData.wobble - dt * 1.4); m.rotation.z = Math.sin(m.userData.wobble * 18) * 0.04 * m.userData.wobble; }
+  }
+
+  // Crane motor follows the hook's speed.
+  const speed = Math.abs(hookX - lastHookX) / Math.max(dt, 1e-3);
+  lastHookX = hookX;
+  if (audio.loops.crane_motor) audio.loops.crane_motor.gain.value = damp(audio.loops.crane_motor.gain.value, Math.min(0.7, speed * 0.12), 6, dt);
+}
+
+let last = performance.now();
+function frame(t) {
+  const dt = Math.min(0.1, (t - last) / 1000);
+  last = t;
+  wall += dt;
+  pollPad();
+  if (phase === 'playing' || phase === 'done') {
+    acc += Math.min(dt, 0.25);
+    while (acc >= 1 / SIM.TICK_HZ && sim.phase !== 'done') { tick(); acc -= 1 / SIM.TICK_HZ; simTime += 1 / SIM.TICK_HZ; }
+    if (sim.phase === 'done') acc = 0;
+  }
+  if (sim) draw(dt, Math.min(1, acc * SIM.TICK_HZ));
+  if (GUARD && sim && guardHash && SIM.hash(sim) !== guardHash) { console.error('the renderer changed the simulation state at tick', sim.tick); guardHash = SIM.hash(sim); }
+  updateFx(dt);
+  placeCamera(dt);
+  water.material.uniforms.uTime.value = wall;
+  grade.uniforms.uTime.value = wall;
+  renderer.info.reset();
+  composer.render(dt);
+  frames += 1; fpsT += dt;
+  if (fpsT >= 0.5) { fps = Math.round(frames / fpsT); frames = 0; fpsT = 0; if (Q.has('debug')) ui.debug.textContent = `${fps} fps · ${renderer.info.render.calls} calls · ${renderer.info.render.triangles} tris · seed ${SEED}`; }
+  requestAnimationFrame(frame);
+}
+
+function resize() {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+}
+addEventListener('resize', resize);
+document.addEventListener('visibilitychange', () => { last = performance.now(); });
+
+// Read-only state for playtest scenarios, in metres in the boat's frame; scenarios
+// press keys like a player and never write into the game.
+window.__game = {
+  get state() {
+    if (!sim) return { phase };
+    const s = sim;
+    return {
+      phase: phase === 'playing' ? s.phase : phase,
+      tick: s.tick, index: s.index, placed: s.placed, lost: s.lost.length, score: SIM.score(s), fps,
+      crate: s.crate ? s.crate.type : null, crateW: s.crate ? M(SIM.CRATES[s.crate.type].w) : 0,
+      hookX: M(s.hookX),
+      // Where the hook will be on the next two ticks, as a player would read its motion.
+      nextHookX: s.phase === 'swing' ? M(SIM.hookAt(s.index, s.phaseTick + 1)) : M(s.hookX),
+      afterHookX: s.phase === 'swing' ? M(SIM.hookAt(s.index, s.phaseTick + 2)) : M(s.hookX),
+      boatX: M(s.boatX), deck: [M(SIM.DECK.left), M(SIM.DECK.right)],
+      stack: s.stack.map((c) => ({ x: M(c.x), w: M(SIM.CRATES[c.type].w), top: M(c.top) })),
+      releases: s.releases.slice(), seed: SEED,
+    };
+  },
+  verify() { return sim ? SIM.replay(SEED, sim.releases) : null; },
+};
+
+// ---------- boot ----------
+const [sky, houses] = await Promise.all([loadTex('assets/img/sky.webp'), loadTex('assets/img/houses.webp'), loadModels()]);
+const pmrem = new THREE.PMREMGenerator(renderer);
+const envTex = sky.clone(); envTex.mapping = THREE.EquirectangularReflectionMapping;
+scene.environment = pmrem.fromEquirectangular(envTex).texture;
+scene.environmentIntensity = 0.35;
+buildWorld(sky, houses);
+loadAudio();
+newRun();
+phase = 'title';
+resize();
+requestAnimationFrame(frame);
+if (Q.has('autostart')) start();
+</script>
+</body>
+</html>

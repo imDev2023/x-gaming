@@ -1,0 +1,200 @@
+{
+  "pieces": {
+    "Crane_01": {
+      "triangles": 456,
+      "bounds_min_m": [
+        -2.2,
+        -1.85,
+        0.0
+      ],
+      "bounds_max_m": [
+        1.9,
+        1.85,
+        7.71
+      ],
+      "location_m": [
+        -10.0,
+        0.0,
+        1.6
+      ],
+      "faces_per_material": {
+        "Steel_A": 182,
+        "Glass_A": 18,
+        "Paint_Yellow": 16
+      },
+      "coplanar_same_facing_pairs": 0,
+      "coplanar_same_facing_examples": [],
+      "coplanar_back_to_back_pairs": 13,
+      "checks": {
+        "bounds": true,
+        "tris": true,
+        "transforms": true,
+        "names_clean": true,
+        "materials": true,
+        "every_material_used": true,
+        "single_sided": true,
+        "no_coplanar_same_facing": true
+      }
+    },
+    "CraneJib_01": {
+      "triangles": 524,
+      "bounds_min_m": [
+        -0.12,
+        -0.65,
+        -0.56
+      ],
+      "bounds_max_m": [
+        12.3,
+        0.65,
+        0.56
+      ],
+      "location_m": [
+        -8.5,
+        0.0,
+        7.0
+      ],
+      "faces_per_material": {
+        "Steel_A": 248,
+        "Paint_Yellow": 6
+      },
+      "coplanar_same_facing_pairs": 0,
+      "coplanar_same_facing_examples": [],
+      "coplanar_back_to_back_pairs": 0,
+      "checks": {
+        "bounds": true,
+        "tris": true,
+        "transforms": true,
+        "names_clean": true,
+        "materials": true,
+        "every_material_used": true,
+        "single_sided": true,
+        "no_coplanar_same_facing": true
+      }
+    },
+    "CraneHook_01": {
+      "triangles": 96,
+      "bounds_min_m": [
+        -0.2,
+        -0.14,
+        -0.023
+      ],
+      "bounds_max_m": [
+        0.2,
+        0.14,
+        0.85
+      ],
+      "location_m": [
+        -0.787,
+        0.0,
+        5.5
+      ],
+      "faces_per_material": {
+        "Paint_Orange": 18,
+        "Steel_A": 30
+      },
+      "coplanar_same_facing_pairs": 0,
+      "coplanar_same_facing_examples": [],
+      "coplanar_back_to_back_pairs": 3,
+      "checks": {
+        "bounds": true,
+        "tris": true,
+        "transforms": true,
+        "names_clean": true,
+        "materials": true,
+        "every_material_used": true,
+        "single_sided": true,
+        "no_coplanar_same_facing": true
+      }
+    },
+    "Boat_01": {
+      "triangles": 1010,
+      "bounds_min_m": [
+        -6.2,
+        -2.381,
+        -0.8
+      ],
+      "bounds_max_m": [
+        6.5,
+        2.2,
+        9.0
+      ],
+      "location_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "faces_per_material": {
+        "Hull_A": 88,
+        "Rubber_A": 228,
+        "Paint_White": 42,
+        "Paint_Red": 50,
+        "Glass_A": 36,
+        "Steel_A": 48
+      },
+      "coplanar_same_facing_pairs": 0,
+      "coplanar_same_facing_examples": [],
+      "coplanar_back_to_back_pairs": 25,
+      "checks": {
+        "bounds": true,
+        "tris": true,
+        "transforms": true,
+        "names_clean": true,
+        "materials": true,
+        "every_material_used": true,
+        "single_sided": true,
+        "no_coplanar_same_facing": true
+      }
+    },
+    "Quay_01": {
+      "triangles": 220,
+      "bounds_min_m": [
+        -16.0,
+        -5.01,
+        -2.8
+      ],
+      "bounds_max_m": [
+        0.01,
+        5.01,
+        3.38
+      ],
+      "location_m": [
+        -7.4,
+        0.0,
+        1.6
+      ],
+      "faces_per_material": {
+        "Concrete_A": 18,
+        "Steel_A": 64,
+        "Glass_A": 12
+      },
+      "coplanar_same_facing_pairs": 0,
+      "coplanar_same_facing_examples": [],
+      "coplanar_back_to_back_pairs": 8,
+      "checks": {
+        "bounds": true,
+        "tris": true,
+        "transforms": true,
+        "names_clean": true,
+        "materials": true,
+        "every_material_used": true,
+        "single_sided": true,
+        "no_coplanar_same_facing": true
+      }
+    }
+  },
+  "asset_objects": [
+    "Boat_01",
+    "CraneHook_01",
+    "CraneJib_01",
+    "Crane_01",
+    "Quay_01"
+  ],
+  "coplanar_self_test": {
+    "flush_cap": 2,
+    "proud_cap": 0
+  },
+  "set_checks": {
+    "only_set_objects": true,
+    "coplanar_check_self_test": true
+  }
+}

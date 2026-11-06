@@ -7,14 +7,25 @@ When a new source improves a step, update this file and cite the note.
 ## Pipeline
 
 1. **Concept video.** Generate a 10 to 15 s gameplay clip of one original concept built around one verb, with a steady playable camera and no on-screen text. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md), via Video2Game)
+   One take was enough when the prompt named the art direction and the look of the props we already had (the kit's tan wood, braces and dark corners). ([calibration 4](calibration/2026-11-06-video2game/README.md))
 2. **Spec from frames.** Split the clip into frames and write the spec before any code: camera, hero, core mechanic, palette, light and the key moment. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
+   Measure colours as 8 x 8 px averages of named frames, never by eye: under the video's warm grade its white wheelhouse measured tan. ([calibration 4](calibration/2026-11-06-video2game/README.md))
+   Measure the lens too: the distance and field of view decide the look as much as the palette does. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 3. **Assets, cheapest source first.**
    - Free CC0 libraries: Poly Haven textures, HDRIs and models, and Poly Pizza models filtered to CC0. ([Claude Code + Blender](sources/2026-11-04-lummox-claude-code-blender.md))
    - Agent-built in Blender: hard-surface props, modular kits and level blockouts written as Blender Python. ([Claude Code + Blender](sources/2026-11-04-lummox-claude-code-blender.md))
    - Generated and paid: characters and organic shapes from concept sheets lifted to 3D with Tripo, Meshy or Hunyuan3D on fal, then cleaned up in Blender. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
+   - With all 3D from the kit and the bridge, fal only paid for the video, two backdrop images and the sound: 2.07 to 2.69 USD for a game, against Video2Game's gallery median of 6.13 USD. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 4. **Blender asset loop** for every model, described below.
 5. **Game build** in Three.js with keyboard, gamepad and touch input and a complete loop: goal, progression, feedback, end and restart. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
+   - If a score may ever carry value, write the rules first as an integer simulation: ticks, micrometres, seeded randomness, no `Math.sin` and no wall-clock time, with `replay(seed, inputs)` as the server's check; Dockstack's replays gave the same hash in Chrome, Node and JavaScriptCore. ([calibration 4](calibration/2026-11-06-video2game/README.md))
+   - The page only reads the simulation; a `?debug` check that hashes the state after each tick and after drawing catches the renderer writing into it. ([calibration 4](calibration/2026-11-06-video2game/README.md))
+   - Give portrait screens their own framing: fitting a landscape span into a phone's width leaves a thin strip of game. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 6. **Look match and playtest.** Compare game and video frames side by side at fixed times, and let the agent play the game and record its best seconds. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
+   - The pairs catch what no single screenshot does: the first Dockstack pairs showed a flat 30-degree side view where the video had a close 45-degree lens, front light and a quay receding into haze. ([calibration 4](calibration/2026-11-06-video2game/README.md))
+   - A generated sky plate already carries the video's grade: leave tone mapping off and warm the lights rather than grading the frame twice, and apply any highlight shoulder to the brightest channel, since per-channel compression turned warm haze green. ([calibration 4](calibration/2026-11-06-video2game/README.md))
+   - Size a backdrop plate for the widest lens and aspect, and check 2560 x 1080 and a 390 x 844 portrait before calling the look done. ([calibration 4](calibration/2026-11-06-video2game/README.md))
+   - The skill's recorder captures at 27 to 47 fps on this Mac, below the game's own 60; read the game's frame rate from its `?debug` overlay instead. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 7. **Ship check**, described below, before anything goes live.
 
 ## Blender asset loop
@@ -60,6 +71,7 @@ If it is not running, press `N` in the 3D viewport, open the MCP for Blender tab
 Safe mode checks each `execute_blender_code` script before it reaches Blender, so scripts follow its rules. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
 
 - Make every call self-contained: a name defined in an earlier call is rejected, so nothing carries over between calls and state lives only in `bpy.data`.
+- Define no classes: safe mode rejects a `class` statement, so helpers that share state take a dict. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 - Import only `bpy`, `bmesh`, `mathutils` and pure-Python standard modules; `time`, `os`, `open()` and lambdas are rejected, so print reports and save them from the tool's output.
 - Write the build as one script that reuses its materials, mesh and object by name, so rerunning it leaves no `.001` duplicates.
 - Commit the final build, check and export calls; they also run headless with `blender -b --python`, which reproduced calibration 2's GLB byte for byte.
@@ -110,6 +122,7 @@ Scripted versions:
 - [calibration/2026-11-05-crate](calibration/2026-11-05-crate/README.md): a headless build with look renders, and the Three.js engine check page, which takes any GLB as `viewer.html?src=<path>`, or several `src` values for a lineup.
 - [calibration/2026-11-06-crate-bridge](calibration/2026-11-06-crate-bridge/README.md): the bridge calls, with the Blender-side done checks as one script.
 - [calibration/2026-11-06-kit](calibration/2026-11-06-kit/README.md): six pieces from one build script through the bridge, with the done checks and exports run per piece; the template for a set.
+- [calibration/2026-11-06-video2game](calibration/2026-11-06-video2game/README.md): scene pieces with their pivots at the origin (a jib's hinge, a hook's tip, a boat's waterline), placed in a layout for looks, checked in mesh coordinates and exported at their origins.
 
 ### Engine notes
 
@@ -129,6 +142,8 @@ Scripted versions:
 ## Ship check
 
 - Set a first-load download budget, compress models with `gltf-transform optimize` (meshopt or Draco geometry, KTX2 textures), and load levels on demand. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
+  Dockstack compresses in a `build.sh` step, keeping Blender's exports as sources: models went from 398 KB to 146 KB, and the whole game loads 1.40 MB plus Three.js. ([calibration 4](calibration/2026-11-06-video2game/README.md))
+- Downmix stereo sound to mono with an explicit `pan=mono|c0=0.5*c0+0.5*c1`, since ffmpeg's `-ac 1` makes correlated stereo about 3 dB hotter, and give clips under 3 s a constant gain capped by true peak, since `loudnorm` overshoots them. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 - Remove test and unused assets from the build; Sumiro shipped a 14 MB test model. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
 - Add touch controls and test on a phone. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
 - Prefer CC0 assets, keep CC-BY credits in `CREDITS.md`, and check each generator's commercial terms. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md), [Claude Code + Blender](sources/2026-11-04-lummox-claude-code-blender.md))
@@ -138,3 +153,5 @@ Scripted versions:
 
 - Free: Blender, both bridges, Poly Haven, Poly Pizza, Three.js, and Claude Code within our plan.
 - Paid, with approval each time: fal calls (video, images, image-to-3D), OpenAI image calls, and generator API keys or Premium in MCP for Blender.
+- fal prices checked on 2026-11-06: MiniMax H3 Max video 0.112 USD per second at 1080p until 2026-11-15 and 0.16 after, Nano Banana Pro images 0.15 each at 1K or 2K, Meshy image-to-3D 1.20 with textures, ElevenLabs sound 0.002 per second and music 0.60 per started minute. ([calibration 4](calibration/2026-11-06-video2game/README.md))
+- The `FAL_KEY` in the global env cannot read fal's usage API, which needs an admin key, so estimate from the price pages and check the fal dashboard for the exact charge. ([calibration 4](calibration/2026-11-06-video2game/README.md))

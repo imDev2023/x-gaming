@@ -4,7 +4,7 @@ Ideas, X posts and GitHub repos for building games, especially blockchain games.
 Each source is read in full, checked against what it claims, and judged on whether we could use it.
 What we learn is merged into [WORKFLOW.md](WORKFLOW.md), our current game-building pipeline.
 Next steps are tracked in [Issues](https://github.com/imDev2023/x-gaming/issues).
-Hands-on tests of the workflow live in `calibration/`: [Crate_01](calibration/2026-11-05-crate/README.md), one prop taken from a brief to Three.js by a headless script, [Crate_01 through the live bridge](calibration/2026-11-06-crate-bridge/README.md), the same brief driven through MCP for Blender, and [the Crate_01 kit](calibration/2026-11-06-kit/README.md), five more props in its style built through the bridge.
+Hands-on tests of the workflow live in `calibration/`: [Crate_01](calibration/2026-11-05-crate/README.md), one prop taken from a brief to Three.js by a headless script, [Crate_01 through the live bridge](calibration/2026-11-06-crate-bridge/README.md), the same brief driven through MCP for Blender, [the Crate_01 kit](calibration/2026-11-06-kit/README.md), five more props in its style built through the bridge, and [Dockstack](calibration/2026-11-06-video2game/README.md), a one-level stacking game built end to end with the Video2Game skill, with scores a server can replay.
 
 ## Sources
 
@@ -17,7 +17,7 @@ Newest first.
 
 ## Reusable tools found so far
 
-- [Video2Game](https://github.com/lovisdotio/video-to-game) (MIT): a Claude Code skill that turns an AI gameplay video into a Three.js browser game, at about 6 USD of fal calls per game.
+- [Video2Game](https://github.com/lovisdotio/video-to-game) (MIT): a Claude Code skill that turns an AI gameplay video into a Three.js browser game, at about 6 USD of fal calls per game; [Dockstack](calibration/2026-11-06-video2game/README.md) cost us 2.07 to 2.69 USD with the 3D built for free.
 - [Atlas](https://github.com/xikhar/atlas) (MIT): asset-creation skills for 3D models, PBR textures, character turnarounds and Three.js scenes.
 - [MCP for Blender](https://github.com/ahujasid/mcp-for-blender) (MIT): lets Claude Code drive a live Blender, see the result from several angles, and import Poly Haven, Sketchfab and Poly Pizza assets; works with Blender 3.0 and newer.
 - [Blender Lab MCP](https://www.blender.org/lab/mcp-server/) (Blender Foundation): the official Blender MCP server behind Anthropic's Claude Blender connector; needs Blender 5.1 or newer.
