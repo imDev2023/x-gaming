@@ -17,7 +17,7 @@ The owner collects ideas here for building games, specifically blockchain games:
 ## Traps found so far
 
 - `WORKFLOW.md` holds the pipeline, the Blender bridge's launch command, the safe-mode rules for bridge scripts and the done checks; read it before any asset work.
-  Hands-on tests live in `calibration/`: [the crate by script](calibration/2026-11-05-crate/README.md), then [the crate through the bridge](calibration/2026-11-06-crate-bridge/README.md), whose `build.py`, `checks.py` and `export.py` are the templates for new props.
+  Hands-on tests live in `calibration/`: [the crate by script](calibration/2026-11-05-crate/README.md), then [the crate through the bridge](calibration/2026-11-06-crate-bridge/README.md), whose `build.py`, `checks.py` and `export.py` are the templates for a new prop, then [the kit](calibration/2026-11-06-kit/README.md), whose scripts are the templates for a set of props.
 - MCP for Blender is installed (local scope, `BLENDER_MCP_SAFE_MODE=1`, `DISABLE_TELEMETRY=true`; remove with `claude mcp remove blender -s local`).
   Auto mode refuses to install MCP servers or Blender add-ons, so the owner runs those with `!`; the tools load only in a session started afterwards.
 - The bridge needs Blender's GUI, since its server never starts under `blender -b`: start it with `run_in_background`, which leaves the owner's Blender preferences unchanged, and stop it with TaskStop when done.

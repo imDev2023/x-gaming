@@ -64,6 +64,7 @@ Every done check passes on the third build.
 - 2026-11-06: [calibration 2](../2026-11-06-crate-bridge/README.md) ran this brief through the live bridge.
   Its looks found that this crate's braces and frame vanish on faces seen head-on in the engine, which this run's cavity-shaded renders hid; compare [engine-check.png](engine-check.png), where the camera-facing side is featureless.
 - [viewer.html](viewer.html) now takes `?src=<path>` to check any GLB; with no parameter it loads this folder's `crate_01.glb` as before.
-- Still to do: a 5 to 10 piece kit in the same style, as the article's adoption plan suggests.
+  Since [calibration 3](../2026-11-06-kit/README.md) it also takes several `src` values for a lineup, moves the stand-in player clear of wide models, and pulls the camera back only when the scene would not fit; [engine-check.png](engine-check.png) differs from today's page only inside the report panel, which gained its file-name line in calibration 2.
+- 2026-11-06: [calibration 3](../2026-11-06-kit/README.md) built the 5 to 10 piece kit in this crate's style that the article's adoption plan suggests: Crate_01 and five more pieces.
 
 Raw renders go to `look/`, which is ignored by git; the build script recreates them.

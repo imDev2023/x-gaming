@@ -41,6 +41,9 @@ The server needs the GUI and never starts under `blender -b`.
 If it is not running, press `N` in the 3D viewport, open the MCP for Blender tab and start it.
 
 - Use the bridge to author: looking live from any angle, distance and shading caught defects that fixed renders missed. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
+- Look twice after a build, since the first Material Preview look can come back grey while EEVEE compiles shaders.
+  Wireframe and solid looks frame much tighter than Material Preview at the same `distance`, so leave theirs unset. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md), [kit](calibration/2026-11-06-kit/README.md))
+- If the first status call fails with a broken pipe, call it again: the server was still connected to an earlier Blender. ([kit](calibration/2026-11-06-kit/README.md))
 - The official [Blender Lab MCP](https://www.blender.org/lab/mcp-server/), also offered as Anthropic's Claude Blender connector, is the alternative once we move to Blender 5.1 or newer.
 - Use one bridge per project.
 
@@ -90,9 +93,12 @@ Do not stop until every done check passes.
 - A person has looked at one multi-angle view, checking shape and proportion; color is judged later, in the engine.
 - Details read face-on under flat lighting without shadows: judge them in Material Preview or the engine, never only in Workbench renders with cavity or outlines, which draw edges the engine does not.
   A detail that shares its material and facing with the surface behind it disappears; darken the recess with a color attribute, which costs no triangles or textures. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
+  Neighbouring parts that share a material and facing, such as planks in a stack, merge the same way; alternate their tone through the color attribute. ([kit](calibration/2026-11-06-kit/README.md))
 - No two faces are coplanar and overlapping, since such parts flicker in the engine (z-fighting). ([calibration 1](calibration/2026-11-05-crate/README.md))
   Calibration 2's `checks.py` tests this by script. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
+  Run it after every build, not only before export: in the kit it caught caps whose undersides shared a lid's plane, which no look showed, so a part stands proud on every face, including the one underneath. ([kit](calibration/2026-11-06-kit/README.md))
 - Every material is used by at least one face; checking slot names alone misses faces that all landed on one slot. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
+  Check the materials the pieces use, not everything in the file, since the GUI's startup file holds an unused grease-pencil material. ([kit](calibration/2026-11-06-kit/README.md))
 - `npx @gltf-transform/cli validate <file>` reports zero errors, and `inspect` matches the brief.
 - Materials on closed meshes are single-sided: turn on backface culling in Blender, or the GLB exports `doubleSided: true`. ([calibration 1](calibration/2026-11-05-crate/README.md))
 - The GLB loads in our Three.js scene at the right scale, origin and orientation, and its colors read as briefed under the game's lighting.
@@ -101,8 +107,9 @@ Do not stop until every done check passes.
 
 Scripted versions:
 
-- [calibration/2026-11-05-crate](calibration/2026-11-05-crate/README.md): a headless build with look renders, and the Three.js engine check page, which takes any GLB as `viewer.html?src=<path>`.
+- [calibration/2026-11-05-crate](calibration/2026-11-05-crate/README.md): a headless build with look renders, and the Three.js engine check page, which takes any GLB as `viewer.html?src=<path>`, or several `src` values for a lineup.
 - [calibration/2026-11-06-crate-bridge](calibration/2026-11-06-crate-bridge/README.md): the bridge calls, with the Blender-side done checks as one script.
+- [calibration/2026-11-06-kit](calibration/2026-11-06-kit/README.md): six pieces from one build script through the bridge, with the done checks and exports run per piece; the template for a set.
 
 ### Engine notes
 
@@ -116,6 +123,8 @@ Scripted versions:
 - Well: hard-surface props, modular kits on a grid, environment blockouts, batch cleanup, export pipelines and LOD scaffolding.
 - Badly: hero characters, foliage, cloth and ornate props, which need generators plus cleanup, a library, or an artist.
 - To make a set, approve one piece, then ask for variants in the same style and grid.
+  - First turn the approved piece's build into a function of its size and rebuild the piece from it: its GLB must come out byte-identical, which proves every variant starts from the approved look. ([kit](calibration/2026-11-06-kit/README.md))
+  - Build the whole set in one script with every piece at the origin, hide the others to look at one, and export each by selection. ([kit](calibration/2026-11-06-kit/README.md))
 
 ## Ship check
 
