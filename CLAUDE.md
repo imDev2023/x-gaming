@@ -4,8 +4,10 @@ The owner collects ideas here for building games, specifically blockchain games:
 
 ## When the owner shares a link
 
-- Open X links with Claude in Chrome (the owner's logged-in Chrome profile), as the owner asked on 2026-11-04.
+- Check `sources/` first: a link can come back (Sumiro was shared on 2026-11-04 and again on 2026-11-07), and a repeat gets a dated recheck section in its existing note, not a second note.
+- Open X links with Claude in Chrome (the owner's Chrome profile), as the owner asked on 2026-11-04.
   Read the whole thread, the author's own replies and every linked repo or demo.
+  On 2026-11-07 that profile was signed out of X: the author's thread still read in full, but other people's replies were cut off behind a sign-in wall.
 - Check claims instead of repeating them: play the demo, inspect the repo, and measure what can be measured (load size, fps, cost).
 - Write one note per source at `sources/YYYY-MM-DD-<author>-<slug>.md`, where the date is the day the source was added, with the same sections as the existing notes: verdict, what the source says, what it leaves out, what was checked, what helps us, blockchain fit, next step.
 - When a source improves how we build, merge the change into `WORKFLOW.md` and cite the note.
@@ -27,6 +29,7 @@ The owner collects ideas here for building games, specifically blockchain games:
   Auto mode refuses to install MCP servers or Blender add-ons, so the owner runs those with `!`, and new tools load only in a later session.
 - `reference/aioriented/` (the owner's VibeGameDev member repos) and `.claude/skills/` (15 skills copied from vgd-skills v3.6.0) are gitignored and local only: never commit or push them, and paraphrase rather than copy from them, as with any source.
   To update the skills, pull `reference/aioriented/vgd-skills` and copy the same folders again.
+- For a gameplay video, use `../dockstack/tools/render-video.mjs` (see its README section): Chrome's live screencast dropped and reordered frames, so it renders frame by frame on a virtual clock and mixes the sound in Node, because headless Chrome refused to allocate a 60 s buffer for offline mixing.
 - Start Blender's GUI for the bridge with `run_in_background` and stop it with TaskStop; it leaves the owner's Blender preferences unchanged.
 
 ## Multica dashboard
@@ -34,5 +37,5 @@ The owner collects ideas here for building games, specifically blockchain games:
 This project is mirrored on the owner's Multica dashboard (workspace Pandora) as project `5e65d424-8653-4e40-8aca-449c8e90891c`.
 GitHub Issues on `imDev2023/x-gaming` stay the source of truth; Multica only mirrors them, and each Multica ticket title starts with its issue number (for example `#1`).
 At the end of every session, after the issues are updated, run the `multica-sync` skill for this project: mirror ticket statuses, add any new tickets, and refresh the project's "Current step" section.
-Every Multica write passes `--no-start` and no ticket is ever assigned to an agent, so the sync never starts an agent run.
+Every status and assignment write passes `--no-start` (`issue create` rejects the flag and starts nothing while the assignee is a member), and no ticket is ever assigned to an agent, so the sync never starts an agent run.
 If the `multica` CLI is not signed in, say so in the session summary and stop anyway; the sync never blocks the work.
