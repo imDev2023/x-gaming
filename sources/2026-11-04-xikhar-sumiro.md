@@ -116,6 +116,14 @@ What the workflow does not cover:
 5. **Depth.** The skeptics are right that this is a polished vertical slice, not a long game.
    For a blockchain game that can be enough if the loop is short and replayable, such as seasons or tournaments.
 
+## Rechecked on 2026-11-07
+
+- The post had about 5.9 million views, up from about 86K when first read; the thread itself is unchanged and still has no prompt.
+- The published build grew to 128 MB in 151 files (105 MB of it in 26 GLB models), and the source is still not public; the build carries no licence.
+- In Chrome on the same Mac the title screen appeared after about 35 s and 57 MB of downloads, and walking held 60 fps.
+- The controls are still keyboard only, and the game has no score, so nothing in it could be checked by a server.
+- Our answer to this thread so far is [Dockstack](../calibration/2026-11-06-video2game/README.md): a 2.5 MB build that loads in about half a second, works on phones, and has a score a server can replay.
+
 ## Possible next step
 
 Install Video2Game, pick one concept with a clear on-chain hook, and build a single-level game for roughly 5 to 15 USD of fal calls (needs approval).
