@@ -13,10 +13,16 @@ When a new source improves a step, update this file and cite the note.
    Measure colours as 8 x 8 px averages of named frames, never by eye: under the video's warm grade its white wheelhouse measured tan. ([calibration 4](calibration/2026-11-06-video2game/README.md))
    Measure the lens too: the distance and field of view decide the look as much as the palette does. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 3. **Assets, cheapest source first.**
+   A generator makes only what code cannot make well: the few solid hero objects that carry the look.
+   Simple shapes (walls, houses, stairs, bridges) are scripts with CC0 textures mapped at real size, and CC0 models dress the rest; Kensei's first pass looked flat and grey until that dressing and a look pass went in. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
+   Before any sheet, make one or two mood stills from the gameplay camera until the owner approves the look, and edit every sheet from them. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
    - Free CC0 libraries: Poly Haven textures, HDRIs and models, and Poly Pizza models filtered to CC0. ([Claude Code + Blender](sources/2026-11-04-lummox-claude-code-blender.md))
    - Agent-built in Blender: hard-surface props, modular kits and level blockouts written as Blender Python. ([Claude Code + Blender](sources/2026-11-04-lummox-claude-code-blender.md))
    - Generated and paid: characters and organic shapes from concept sheets lifted to 3D with Tripo, Meshy or Hunyuan3D on fal, then cleaned up in Blender. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
      Choose how it will be rigged before paying, keep the raw download untouched, and give image-to-3D a reference on studio grey with no text, since green fringes and labels end up in the geometry; skin hard-surface parts rigidly, one bone per part. ([VGD packs](sources/2026-11-06-chongdashu-aioriented-vgd.md))
+     Generate from 3 or 4 views (front, left, back, right; fal's `tripo3d/h3.1/multiview-to-3d`), not one: from a single front image the generator invented a second tail.
+     Label each view by what it shows, since sheets swap left and right, and leave off anything the game draws or moves separately (a held tool, a flame, a glowing lantern), or it is welded into the mesh. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
+     Then cut the model to its budget with a normal and colour bake, below. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
    - For a set of 2D props or sprites, ask for one sheet on a flat green background, edited from real reference images, and cut it up with our own script. ([VGD packs](sources/2026-11-06-chongdashu-aioriented-vgd.md))
    - With all 3D from the kit and the bridge, fal only paid for the video, two backdrop images and the sound: 2.67 USD for a game, against Video2Game's gallery median of 6.13 USD. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 4. **Blender asset loop** for every model, described below.
@@ -30,6 +36,10 @@ When a new source improves a step, update this file and cite the note.
    - Playtest through the real input path: Lantern River's `tools/autoplay.js` steers by sending pointer drags to the page like a finger, and the recorded run replayed in Node to the same hash. ([Lantern River](https://github.com/imDev2023/lantern-river))
    - Give portrait screens their own framing: fitting a landscape span into a phone's width leaves a thin strip of game. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 6. **Look match and playtest.** Compare game and video frames side by side at fixed times, and let the agent play the game and record its best seconds. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
+   - Play through scripts, not model sessions: Kensei's agent playthrough found real blockers but was slow and among his dearest sessions, while a scripted pilot like Lantern River's is cheap and repeatable; feel is judged by the owner playing, and the list of what feels wrong becomes the next brief. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
+   - Do the look in one look-only pass against the approved mood still, with before and after shots from the same spot and the frame rate before and after. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
+   - Dress a level by rule: clusters of 3 to 7 items at varied heights rather than rows, real-world logic in what sits beside what, the player's route kept clear; then snap every item onto the surface below it and list anything that moved by more than 1 cm. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
+   - Look, then measure: print the numbers (heights, gaps, distances to the route) next to every screenshot, since the bugs that mattered, a bridge floating 2.8 m up and a pickup out of jumping reach, looked fine. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
    - Let a second agent judge the screenshots against the reference without seeing the builder's reasoning, with camera, lens, light and seed fixed and from the gameplay camera's distance. ([VGD packs](sources/2026-11-06-chongdashu-aioriented-vgd.md))
    - The pairs catch what no single screenshot does: the first Dockstack pairs showed a flat 30-degree side view where the video had a close 45-degree lens, front light and a quay receding into haze. ([calibration 4](calibration/2026-11-06-video2game/README.md))
    - A generated sky plate already carries the video's grade: leave tone mapping off and warm the lights rather than grading the frame twice, and apply any highlight shoulder to the brightest channel, since per-channel compression turned warm haze green. ([calibration 4](calibration/2026-11-06-video2game/README.md))
@@ -146,6 +156,20 @@ Scripted versions:
 - glTF vertex colors (`COLOR_0`) multiply the base color, and Three.js applies them without setup.
   Blender exports a color attribute when the material multiplies it into Base Color through a Mix node, and keeps the other Mix input as the base color factor. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
 
+### Cutting a generated or scanned model to budget
+
+Generated models arrive at about 2 million triangles and scans at tens of thousands, both too heavy for a phone. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
+[Lantern River's `tools/lowpoly_bake.py`](https://github.com/imDev2023/lantern-river/blob/main/tools/lowpoly_bake.py) cuts one headless:
+
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --python-exit-code 1 \
+  -P tools/lowpoly_bake.py -- in.glb out.glb --tris 6000 --size 1024
+```
+
+- It decimates a copy, unwraps it afresh, and bakes colour, a tangent-space normal map and roughness-metal from the original, then exports a single-sided GLB.
+- Bake colour as emission, never as diffuse: on Poly Haven's brass candleholders the diffuse bake rendered black in Three.js, since metal has no diffuse colour. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
+- Measured on Poly Haven's mossy rock set: 63,127 triangles to 6,000 in 4.5 s, 828 KB, then 481 KB after `gltf-transform optimize --compress meshopt --texture-compress webp`, and it read like the original at viewing distance. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
+
 ### What agents model well
 
 - Well: hard-surface props, modular kits on a grid, environment blockouts, batch cleanup, export pipelines and LOD scaffolding.
@@ -170,6 +194,7 @@ Scripted versions:
 - Free: Blender, both bridges, Poly Haven, Poly Pizza, Three.js, and Claude Code within our plan.
 - Paid, with approval each time: fal calls (video, images, image-to-3D), OpenAI image calls, and generator API keys or Premium in MCP for Blender.
 - fal prices checked on 2026-11-06: MiniMax H3 Max video 0.112 USD per second at 1080p until 2026-11-15 and 0.16 after, Nano Banana Pro images 0.15 each at 1K or 2K, Meshy image-to-3D 1.20 with textures, ElevenLabs sound 0.002 per second and music 0.60 per started minute. ([calibration 4](calibration/2026-11-06-video2game/README.md))
+- Tripo on fal, checked on 2026-11-07: every Tripo endpoint, including H3.1 multiview-to-3D, bills 0.01 USD per credit; Kensei paid 60 credits (0.60 USD) for detailed geometry and 40 for standard, through Tripo's own API, and 8.20 USD for a level's 16 models. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
 - Send `x-app-fal-disable-fallback: true` so a run uses only the model asked for, and log each run's `x-fal-request-id` and `x-fal-billable-units` headers; the cost some endpoints return in the body is a placeholder. ([VGD packs](sources/2026-11-06-chongdashu-aioriented-vgd.md))
 - Read the exact charge from fal's usage API (`GET https://api.fal.ai/v1/models/usage`, filtered by `endpoint_id` and the run's `start` and `end`) with `FAL_BILLING_KEY` from the global env, a read-only BILLING-preset key; the model key `FAL_KEY` cannot read it. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 - fal bills music per started minute and sound effects per started second, and outputs run slightly long: ask for 59 s of music, not 60, or a 24 ms overrun doubles the price. ([calibration 4](calibration/2026-11-06-video2game/README.md))

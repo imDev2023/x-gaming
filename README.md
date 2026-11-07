@@ -11,6 +11,9 @@ The next game, [Lantern River](https://github.com/imDev2023/lantern-river) for [
 
 Newest first.
 
+- **2026-11-07**: [Opus 5.5 + Blender + Unity in 14 steps](sources/2026-11-07-kensei-opus-blender-unity.md) by [@0xKense1](https://x.com/0xKense1/status/2112557260375298530), a 2-day Unity level whose 16 Tripo models cost 8.20 USD, with every prompt, setting and failure.
+  - Verdict: useful; generate only the hero objects from 3 or 4 views, build the rest in code with CC0 textures and dressing, and bake each model down; its bake recipe reproduced in our Blender, and it now shapes Lantern River's art plan.
+
 - **2026-11-06**: [The AIOriented repos](sources/2026-11-06-chongdashu-aioriented-vgd.md) by [@chongdashu](https://x.com/chongdashu), 22 repos of VibeGameDev skills, game templates and finished games with their build records, mostly members-only.
   - Verdict: useful; no repo replaces our pipeline, but most sharpen a step of it, and Retro del Sol's server shows the replay check our leaderboard needs.
 - **2026-11-04**: [Claude Code + Blender](sources/2026-11-04-lummox-claude-code-blender.md) by [@Lummox_eth](https://x.com/Lummox_eth/status/2117215758472073446), a written guide to driving Blender from Claude Code through MCP to make game-ready assets.
@@ -26,3 +29,5 @@ Newest first.
 - [MCP for Blender](https://github.com/ahujasid/mcp-for-blender) (MIT): lets Claude Code drive a live Blender, see the result from several angles, and import Poly Haven, Sketchfab and Poly Pizza assets; works with Blender 3.0 and newer.
 - [Blender Lab MCP](https://www.blender.org/lab/mcp-server/) (Blender Foundation): the official Blender MCP server behind Anthropic's Claude Blender connector; needs Blender 5.1 or newer.
 - [Poly Haven](https://polyhaven.com/): about 2,400 HDRIs, textures and models, all CC0 and free.
+- [`lowpoly_bake.py`](https://github.com/imDev2023/lantern-river/blob/main/tools/lowpoly_bake.py) (ours, MIT-0): cuts a generated or scanned model to a phone budget in headless Blender, baking colour as emission plus normal and roughness-metal maps; from [Kensei's article](sources/2026-11-07-kensei-opus-blender-unity.md).
+- [Unity agent plugin](https://github.com/Unity-Technologies/unity-agent-plugin) (Unity Technologies): connects Claude Code to a live Unity editor; for a Unity build, not our Three.js games.
