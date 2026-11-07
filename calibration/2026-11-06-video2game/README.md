@@ -41,6 +41,7 @@ The Claude Code plugin was not installed, because a newly installed skill only l
 ## The game
 
 Play it at [dockstack.vercel.app](https://dockstack.vercel.app/), live since 2026-11-07 on the owner's Vercel account.
+The game's code now lives in its own public repo, [imDev2023/dockstack](https://github.com/imDev2023/dockstack), which deploys the live site; the `game/` folder here is this calibration's record as of commit `f359a18` and is no longer deployed.
 The page explains the rules before the first drop, keeps each player's best score for the day in their own browser, and offers a Share on X button with the result; there is no sign-in and no shared leaderboard yet.
 
 Tap, click or press Space to drop the crate from the crane's hook onto the boat; gamepad A works too.
