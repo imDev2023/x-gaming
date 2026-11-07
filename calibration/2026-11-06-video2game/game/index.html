@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dockstack</title>
-<link rel="icon" href="data:,">
+<meta name="description" content="Drop crates from a harbour crane onto a rocking boat. A new shipment every day, the same for everyone. Free to play in your browser.">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <style>
   :root { --ink: #fff4e4; --shade: rgba(60, 30, 12, 0.55); }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #e3b68b; }
@@ -13,12 +14,34 @@
   canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; }
   .overlay { position: fixed; left: 0; right: 0; text-align: center; pointer-events: none;
     text-shadow: 0 2px 12px var(--shade), 0 1px 2px var(--shade); transition: opacity 0.6s ease; }
-  #title { top: 9vh; }
+  #title { top: max(6vh, env(safe-area-inset-top)); }
+  .panel { border-radius: 18px; background: rgba(58, 30, 14, 0.42); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  #title .tag { margin: 2px 16px 0; font-size: clamp(15px, 2vw, 20px); font-weight: 600; }
+  #help { margin: 18px auto 0; width: min(440px, calc(100vw - 32px)); box-sizing: border-box; padding: 16px 22px 14px; text-align: left; }
+  #help h2 { margin: 0 0 8px; font-size: 17px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.9; }
+  #help ol { margin: 0; padding-left: 22px; font-size: 16px; font-weight: 600; line-height: 1.4; }
+  #help li + li { margin-top: 6px; }
+  #help li { text-wrap: pretty; }
+  #help .small { text-wrap: balance; }
+  @media (pointer: coarse) { .keys { display: none; } }
+  #help .small { margin: 12px 0 0; font-size: 14px; font-weight: 600; opacity: 0.85; }
+  kbd { font: inherit; font-size: 0.9em; padding: 0 5px; border-radius: 5px; border: 1.5px solid rgba(255, 244, 228, 0.7); }
+  #go { margin: 16px 16px 0; font-size: clamp(17px, 2.2vw, 22px); font-weight: 800; }
+  #title.ready #go { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.55; } }
+  #end .best { font-size: clamp(15px, 2vw, 19px); }
+  #end .row { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+  #end a.share { pointer-events: auto; display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px;
+    background: #fff4e4; color: #3a1e0e; font-weight: 800; font-size: 16px; text-decoration: none; text-shadow: none; }
+  #end a.share svg { width: 15px; height: 15px; }
+  #end a.share:hover { background: #ffffff; }
+  #end .again { margin: 0; font-size: clamp(15px, 2vw, 19px); font-weight: 600; }
   #title h1 { margin: 0; font-size: clamp(40px, 7vw, 84px); font-weight: 800; letter-spacing: 0.02em; }
   #title p, #end p { margin: 10px 16px 0; font-size: clamp(15px, 2vw, 20px); font-weight: 600; opacity: 0.95; }
   #end p { margin: 8px 0 0; }
-  #end { top: 16vh; left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px);
-    padding: 14px 28px 18px; border-radius: 18px; background: rgba(58, 30, 14, 0.42); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  #end { top: 16vh; left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box;
+    padding: 14px 28px 18px; }
+  #end.hidden a.share { pointer-events: none; }
   #end .line { margin: 0; font-size: clamp(24px, 4vw, 42px); font-weight: 800; }
   .hidden { opacity: 0; }
   #hud { position: fixed; top: max(14px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left));
@@ -38,8 +61,29 @@
 </script>
 </head>
 <body>
-<div id="title" class="overlay"><h1>Dockstack</h1><p>Tap, click or press Space to drop the crate</p></div>
-<div id="end" class="overlay hidden"><p class="line"></p><p>Tap to load the shipment again</p></div>
+<div id="title" class="overlay">
+  <h1>Dockstack</h1>
+  <p class="tag">Load the boat before it sails.</p>
+  <div id="help" class="panel">
+    <h2>How to play</h2>
+    <ol>
+      <li>Tap, click or press <kbd>Space</kbd> to drop the crate from the crane.</li>
+      <li>A crate stays only if its middle lands over the crate or deck below.</li>
+      <li>The hook speeds up and the boat rocks, so time each drop.</li>
+      <li>Load all 15 crates. Most crates wins, then the tallest stack.</li>
+    </ol>
+    <p class="small">A new shipment every day, the same for everyone.<span class="keys"><br>Press <kbd>M</kbd> to mute the sound.</span></p>
+  </div>
+  <p id="go">Loading the harbour...</p>
+</div>
+<div id="end" class="overlay panel hidden">
+  <p class="line"></p>
+  <p class="best"></p>
+  <div class="row">
+    <a class="share" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.9 1.2h3.7l-8 9.2 9.4 12.4h-7.4l-5.8-7.6-6.6 7.6H.5l8.6-9.8L0 1.2h7.6l5.2 6.9 6.1-6.9Zm-1.3 19.4h2L6.5 3.3H4.3l13.3 17.3Z"/></svg>Share on X</a>
+    <p class="again">or tap to play again</p>
+  </div>
+</div>
 <div id="hud" class="hidden"></div>
 <div id="debug"></div>
 <script type="module">
@@ -456,6 +500,21 @@ function newRun() {
   simTime = 0;
   hud();
 }
+// The best run for this shipment lives only in this browser.
+const BEST_KEY = `dockstack.best.${SEED}`;
+function showBest(score, placed, height) {
+  let best = null;
+  try { best = JSON.parse(localStorage.getItem(BEST_KEY)); } catch {}
+  const isNew = !best || score > best.score;
+  if (isNew) { best = { score, placed, height }; try { localStorage.setItem(BEST_KEY, JSON.stringify(best)); } catch {} }
+  const daily = !Q.has('seed');
+  ui.end.querySelector('.best').textContent = isNew
+    ? (daily ? 'Your best today!' : 'Your best on this shipment!')
+    : `Your best ${daily ? 'today' : 'here'}: ${best.placed} of ${SIM.SHIPMENT} · ${best.height} m`;
+  const url = location.origin + location.pathname + (daily ? '' : `?seed=${SEED}`);
+  const text = `I loaded ${placed} of ${SIM.SHIPMENT} crates in ${daily ? "today's " : ''}Dockstack, with a ${height} m stack. Can you beat it?`;
+  ui.end.querySelector('.share').href = `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+}
 function start() {
   if (phase === 'playing') return;
   if (phase === 'done') newRun();
@@ -506,6 +565,7 @@ function onEvents(events) {
       phase = 'done';
       const height = M(SIM.stackTop(sim)).toFixed(1);
       ui.end.querySelector('.line').textContent = `Loaded ${sim.placed} of ${SIM.SHIPMENT} · stack ${height} m`;
+      showBest(SIM.score(sim), sim.placed, height);
       ui.end.classList.remove('hidden');
     }
     if (['land', 'tip', 'miss', 'next', 'depart'].includes(e.type)) hud();
@@ -532,7 +592,10 @@ addEventListener('keydown', (e) => {
   else if (e.code === 'KeyR' && phase === 'done') start();
   else if (e.code === 'KeyM' && audio.master) { audio.muted = !audio.muted; audio.master.gain.value = audio.muted ? 0 : 1; }
 });
-addEventListener('pointerdown', (e) => { e.preventDefault(); press(); }, { passive: false });
+addEventListener('pointerdown', (e) => {
+  if (e.target.closest?.('a')) return; // the share link opens; it must not restart the run
+  e.preventDefault(); press();
+}, { passive: false });
 let padWas = false;
 function pollPad() {
   const pad = navigator.getGamepads?.()[0];
@@ -704,6 +767,10 @@ buildWorld(sky, houses);
 loadAudio();
 newRun();
 phase = 'title';
+ui.title.classList.add('ready');
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+document.getElementById('go').textContent = TOUCH ? 'Tap anywhere to start' : 'Click or press Space to start';
+ui.end.querySelector('.again').textContent = TOUCH ? 'or tap to play again' : 'or click to play again';
 resize();
 requestAnimationFrame(frame);
 if (Q.has('autostart')) start();

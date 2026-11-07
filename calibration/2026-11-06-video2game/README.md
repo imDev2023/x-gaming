@@ -40,6 +40,9 @@ The Claude Code plugin was not installed, because a newly installed skill only l
 
 ## The game
 
+Play it at [dockstack.vercel.app](https://dockstack.vercel.app/), live since 2026-11-07 on the owner's Vercel account.
+The page explains the rules before the first drop, keeps each player's best score for the day in their own browser, and offers a Share on X button with the result; there is no sign-in and no shared leaderboard yet.
+
 Tap, click or press Space to drop the crate from the crane's hook onto the boat; gamepad A works too.
 The hook sweeps the deck faster with each crate, and the boat surges and heaves on the swell, so the target moves under the hook.
 A crate rests if its centre lies over what it lands on; otherwise it tips off and is lost, and one dropped past the bow falls between quay and hull with a splash, the video's key moment.
@@ -54,6 +57,9 @@ python3 -m http.server 8000      # then open http://127.0.0.1:8000/
 node --test .                    # the simulation's tests
 ./build.sh                       # recompress the models from their sources
 ```
+
+To publish it, `./deploy.sh` stages the site in `game/dist/` (gitignored) with Three.js served from the site itself and the link-card tags for X, and `./deploy.sh --prod` also deploys that folder to Vercel production.
+Set `SITE` if the address ever changes, since X reads the card image from it.
 
 URL parameters: `?seed=N` (default: today's UTC date as `YYYYMMDD`, the daily challenge), `?autostart`, `?mute` and `?debug` (frame rate, draw calls, triangles, seed).
 `M` mutes and `R` restarts at the end.

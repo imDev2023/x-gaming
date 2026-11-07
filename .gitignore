@@ -2,3 +2,5 @@
 calibration/*/look/
 reference/
 .claude/skills/
+calibration/*/game/dist/
+.wrangler/
