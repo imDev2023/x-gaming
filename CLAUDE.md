@@ -25,7 +25,7 @@ The owner collects ideas here for building games, specifically blockchain games:
 - Dockstack's code now lives in `../dockstack` (github.com/imDev2023/dockstack), which deploys dockstack.vercel.app; make game changes there and follow its CLAUDE.md.
   `calibration/2026-11-06-video2game/game/` is the frozen calibration record: never run its `deploy.sh --prod`, since that would put the older game over the live one.
 - Lamplighter (#7), the character runner the owner chose on 2026-11-08 to replace Lantern River, lives in `../lamplighter` (github.com/imDev2023/lamplighter); make its changes there and follow its CLAUDE.md.
-  No game code until the owner approves its samples, judged against Kensei's example.
+  Its four samples are done in both styles (2026-11-08) and wait for the owner's verdict on #7; no game code until the owner approves them, judged against Kensei's example.
 - Lantern River (#6, closed as replaced) stays in `../lantern-river` as the source of the rules, chunk generator, replay check and test pilot that Lamplighter will reuse; its live link still shows the grey-box.
 - Each calibration's `raw/` folder is gitignored and holds the only copy of its paid fal outputs and full-length takes; never delete it.
 - The Video2Game skill is not installed: calibration 4 ran it from a clone of `lovisdotio/video-to-game` at `d1a24fd`, so reinstall or reclone it before another game run.
