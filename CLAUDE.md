@@ -24,8 +24,9 @@ The owner collects ideas here for building games, specifically blockchain games:
   Templates: [one prop](calibration/2026-11-06-crate-bridge/README.md), [a set of props](calibration/2026-11-06-kit/README.md) and [a whole game](calibration/2026-11-06-video2game/README.md); the Three.js check page is `calibration/2026-11-05-crate/viewer.html?src=<glb>`, with `src` repeated for a lineup.
 - Dockstack's code now lives in `../dockstack` (github.com/imDev2023/dockstack), which deploys dockstack.vercel.app; make game changes there and follow its CLAUDE.md.
   `calibration/2026-11-06-video2game/game/` is the frozen calibration record: never run its `deploy.sh --prod`, since that would put the older game over the live one.
-- Lantern River, the game for #6, lives in `../lantern-river` (github.com/imDev2023/lantern-river); make its changes there and follow its CLAUDE.md, which holds its rules, stage and Solana plans.
-- Lamplighter (#7), the character runner the owner chose on 2026-11-08, has no home yet (an open question on #7); no game code until the owner approves its samples, judged against Kensei's example.
+- Lamplighter (#7), the character runner the owner chose on 2026-11-08 to replace Lantern River, lives in `../lamplighter` (github.com/imDev2023/lamplighter); make its changes there and follow its CLAUDE.md.
+  No game code until the owner approves its samples, judged against Kensei's example.
+- Lantern River (#6, closed as replaced) stays in `../lantern-river` as the source of the rules, chunk generator, replay check and test pilot that Lamplighter will reuse; its live link still shows the grey-box.
 - Each calibration's `raw/` folder is gitignored and holds the only copy of its paid fal outputs and full-length takes; never delete it.
 - The Video2Game skill is not installed: calibration 4 ran it from a clone of `lovisdotio/video-to-game` at `d1a24fd`, so reinstall or reclone it before another game run.
 - MCP for Blender is installed at local scope with safe mode on and telemetry off (remove with `claude mcp remove blender -s local`).
