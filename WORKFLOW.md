@@ -24,7 +24,7 @@ When a new source improves a step, update this file and cite the note.
      Generate from 3 or 4 views (front, left, back, right; fal's `tripo3d/h3.1/multiview-to-3d`), not one: from a single front image the generator invented a second tail.
      Label each view by what it shows, since sheets swap left and right, and leave off anything the game draws or moves separately (a held tool, a flame, a glowing lantern), or it is welded into the mesh. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
      Check which way each profile faces before lifting (a left view faces the image's left edge): both of Lamplighter's sheets drew the left profile twice although the prompt named each side and its facing, so the right view was made by mirroring the left, and [`tools/cut_views.py`](https://github.com/imDev2023/lamplighter/blob/main/tools/cut_views.py) cuts a sheet into the four views on a flat canvas, dropping stray marks the generator left under the feet. ([Lamplighter](https://github.com/imDev2023/lamplighter))
-     Then cut the model to its budget with a normal and colour bake, below. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
+     Then cut the model to its budget, below. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
    - For a set of 2D props or sprites, ask for one sheet on a flat green background, edited from real reference images, and cut it up with our own script. ([VGD packs](sources/2026-11-06-chongdashu-aioriented-vgd.md))
    - With all 3D from the kit and the bridge, fal only paid for the video, two backdrop images and the sound: 2.67 USD for a game, against Video2Game's gallery median of 6.13 USD. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 4. **Blender asset loop** for every model, described below.
@@ -35,6 +35,7 @@ When a new source improves a step, update this file and cite the note.
    - Make the level passable by construction (Lantern River keeps an open channel through every rock row) and prove it with a test pilot that plays the safe line on dozens of seeds: that pilot found gate posts standing in the channel, which no single test of the generator showed. ([Lantern River](https://github.com/imDev2023/lantern-river))
    - The page only reads the simulation; a `?debug` check that hashes the state after each tick and after drawing catches the renderer writing into it. ([calibration 4](calibration/2026-11-06-video2game/README.md))
    - Keep the number of lights in a Three.js scene fixed: adding a light per streamed object makes Three.js recompile every material, which stutters on phones, so move a small pool of lights to the nearest objects instead. ([Lantern River](https://github.com/imDev2023/lantern-river))
+   - Give a portrait chase camera its payoff ahead of the hero: it sees only about 34 degrees across, so Lamplighter's lanterns, lit as the hero passed them, were never on screen until each lit post sent its light forward along the line to the next. ([Lamplighter](https://github.com/imDev2023/lamplighter))
    - Playtest through the real input path: Lantern River's `tools/autoplay.js` steers by sending pointer drags to the page like a finger, and the recorded run replayed in Node to the same hash. ([Lantern River](https://github.com/imDev2023/lantern-river))
    - Give portrait screens their own framing: fitting a landscape span into a phone's width leaves a thin strip of game. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 6. **Look match and playtest.** Compare game and video frames side by side at fixed times, and let the agent play the game and record its best seconds. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
@@ -153,12 +154,18 @@ Scripted versions:
 
 ### Engine notes
 
+- Read each Poly Haven texture's real size from its API (`/info/<id>`, `dimensions` in millimetres) before mapping it: at a phone's resolution true-size roof tiles blurred into flat grey, so Lamplighter draws them half as large again, which also suits a stylised look. ([Lamplighter](https://github.com/imDev2023/lamplighter))
+- In Three.js r186 a fragment shader reads an instance's colour as `vColor` (a vec4, under `USE_COLOR`), and `vViewPosition` points from the surface to the camera; one instanced mesh then holds lit and unlit lanterns by driving emission from the instance colour. ([Lamplighter](https://github.com/imDev2023/lamplighter))
 - Metallic materials render almost black without an environment map, so every game scene sets `scene.environment` from a CC0 Poly Haven HDRI. ([calibration 1](calibration/2026-11-05-crate/README.md))
 - Three.js loads a Blender object with several materials as a group of meshes named `<Name>_1`, `<Name>_2`, so game code finds props by the group name. ([calibration 1](calibration/2026-11-05-crate/README.md))
 - glTF vertex colors (`COLOR_0`) multiply the base color, and Three.js applies them without setup.
   Blender exports a color attribute when the material multiplies it into Base Color through a Mix node, and keeps the other Mix input as the base color factor. ([calibration 2](calibration/2026-11-06-crate-bridge/README.md))
 
 ### Cutting a generated or scanned model to budget
+
+A model with one texture atlas, as every Tripo output so far, keeps its own UVs and textures: weld, simplify with meshoptimizer and resize the textures ([`tools/simplify.sh`](https://github.com/imDev2023/lamplighter/blob/main/tools/simplify.sh)).
+That took Lamplighter's hero from 1.93 million triangles to 24,000 with the face as generated, where the bake below left seams and dark blotches on it: its cage reaches 2% of the model's size, so from the forehead it hits the hair. ([Lamplighter](https://github.com/imDev2023/lamplighter))
+Use the bake for models with several materials or overlapping UVs.
 
 Generated models arrive at about 2 million triangles and scans at tens of thousands, both too heavy for a phone. ([Kensei](sources/2026-11-07-kensei-opus-blender-unity.md))
 [Lantern River's `tools/lowpoly_bake.py`](https://github.com/imDev2023/lantern-river/blob/main/tools/lowpoly_bake.py) cuts one headless:
@@ -179,6 +186,16 @@ Generated models arrive at about 2 million triangles and scans at tens of thousa
 - To make a set, approve one piece, then ask for variants in the same style and grid.
   - First turn the approved piece's build into a function of its size and rebuild the piece from it: its GLB must come out byte-identical, which proves every variant starts from the approved look. ([kit](calibration/2026-11-06-kit/README.md))
   - Build the whole set in one script with every piece at the origin, hide the others to look at one, and export each by selection. ([kit](calibration/2026-11-06-kit/README.md))
+
+### Rigging a generated character in code
+
+[`tools/rig_hero.py`](https://github.com/imDev2023/lamplighter/blob/main/tools/rig_hero.py) rigs an A-posed humanoid headless with Mixamo bone names and keys a run cycle and a jump pose by aiming bones at target directions. ([Lamplighter](https://github.com/imDev2023/lamplighter))
+
+- Measure joints from the mesh and print them: a gap test for the torso's width failed on a simplified mesh (2 cm gaps open anywhere), so the shoulders come from a line fitted through each arm.
+- Bone heat weighted no vertex on the generated mesh's layered cloth; solving it on a watertight voxel copy and transferring the weights by nearest face worked every time, in about 5 s.
+- Around a tunic's hem, hand part of each thigh's weight to the hips, or the trousers push through the hem as the leg swings.
+- Blender's glTF exporter samples one frame past an action's end: pin the end to the last frame before the loop closes, or a 20-frame cycle exports as 21 and hitches.
+- Check every rig in a Three.js page with the skeleton drawn, from the side at several moments of the clip, and up close on the face.
 
 ## Ship check
 
