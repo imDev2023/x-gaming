@@ -7,8 +7,7 @@ The owner collects ideas here for building games, specifically blockchain games:
 - Check `sources/` first: a link can come back (Sumiro was shared on 2026-11-04 and again on 2026-11-07), and a repeat gets a dated recheck section in its existing note, not a second note.
 - Open X links with Claude in Chrome (the owner's Chrome profile), as the owner asked on 2026-11-04.
   Read the whole thread, the author's own replies and every linked repo or demo.
-  On 2026-11-07 that profile was signed out of X: the author's thread still read in full, but other people's replies were cut off behind a sign-in wall.
-  Later that day it was signed in again, so check before assuming either.
+  The profile's X sign-in comes and goes (out, then in again, on 2026-11-07); signed out, the author's thread still reads in full but other people's replies stop at a sign-in wall.
   For an X Article, Chrome's page-text tools cut each paragraph short and return at most about 1,000 characters per script call; the free `https://api.fxtwitter.com/<user>/status/<id>` returns the whole article as JSON, with code blocks in `article.content.entityMap` (Kensei, 2026-11-07).
 - Check claims instead of repeating them: play the demo, inspect the repo, and measure what can be measured (load size, fps, cost).
 - Write one note per source at `sources/YYYY-MM-DD-<author>-<slug>.md`, where the date is the day the source was added, with the same sections as the existing notes: verdict, what the source says, what it leaves out, what was checked, what helps us, blockchain fit, next step.
@@ -26,6 +25,7 @@ The owner collects ideas here for building games, specifically blockchain games:
 - Dockstack's code now lives in `../dockstack` (github.com/imDev2023/dockstack), which deploys dockstack.vercel.app; make game changes there and follow its CLAUDE.md.
   `calibration/2026-11-06-video2game/game/` is the frozen calibration record: never run its `deploy.sh --prod`, since that would put the older game over the live one.
 - Lantern River, the game for #6, lives in `../lantern-river` (github.com/imDev2023/lantern-river); make its changes there and follow its CLAUDE.md, which holds its rules, stage and Solana plans.
+- Lamplighter (#7), the character runner the owner chose on 2026-11-08, has no home yet (an open question on #7); no game code until the owner approves its samples, judged against Kensei's example.
 - Each calibration's `raw/` folder is gitignored and holds the only copy of its paid fal outputs and full-length takes; never delete it.
 - The Video2Game skill is not installed: calibration 4 ran it from a clone of `lovisdotio/video-to-game` at `d1a24fd`, so reinstall or reclone it before another game run.
 - MCP for Blender is installed at local scope with safe mode on and telemetry off (remove with `claude mcp remove blender -s local`).
