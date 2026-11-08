@@ -6,6 +6,7 @@ What we learn is merged into [WORKFLOW.md](WORKFLOW.md), our current game-buildi
 Next steps are tracked in [Issues](https://github.com/imDev2023/x-gaming/issues).
 Hands-on tests of the workflow live in `calibration/`: [Crate_01](calibration/2026-11-05-crate/README.md), one prop taken from a brief to Three.js by a headless script, [Crate_01 through the live bridge](calibration/2026-11-06-crate-bridge/README.md), the same brief driven through MCP for Blender, [the Crate_01 kit](calibration/2026-11-06-kit/README.md), five more props in its style built through the bridge, and [Dockstack](calibration/2026-11-06-video2game/README.md), a one-level stacking game built end to end with the Video2Game skill, with scores a server can replay, live at [dockstack.vercel.app](https://dockstack.vercel.app/), with its code now in [imDev2023/dockstack](https://github.com/imDev2023/dockstack).
 The next game, [Lantern River](https://github.com/imDev2023/lantern-river) for [#6](https://github.com/imDev2023/x-gaming/issues/6), steers a lantern boat down a daily river; its rules, replay check and grey-box are built, and its art is next.
+On 2026-11-08 the owner chose a character runner next, [Lamplighter](https://github.com/imDev2023/x-gaming/issues/7), on the same canal town's rooftops, starting with samples for the owner to approve.
 
 ## Sources
 
