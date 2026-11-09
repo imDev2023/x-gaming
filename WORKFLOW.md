@@ -199,6 +199,7 @@ Generated models arrive at about 2 million triangles and scans at tens of thousa
 - Around a tunic's hem, hand part of each thigh's weight to the hips, or the trousers push through the hem as the leg swings.
 - Blender's glTF exporter samples one frame past an action's end: pin the end to the last frame before the loop closes, or a 20-frame cycle exports as 21 and hitches.
 - Check every rig in a Three.js page with the skeleton drawn, from the side at several moments of the clip, and up close on the face.
+- For a natural run, retarget one from Quaternius's Universal Animation Library (CC0) with `--motion` rather than keying it: aim each bone along the line between the same two source joints, which carries over any difference in proportions and rest pose, scale the hips' offsets by leg length, and play the clip at the ground speed its planted foot implies so the feet do not skate. Take out about half of a sprint's forward lean and keep the head level, or the face hides and a held prop points down. Mixamo motion cannot go into a CC0 public repo under Adobe's terms. ([Lamplighter](https://github.com/imDev2023/lamplighter), 2026-11-09)
 
 ## Ship check
 
@@ -207,6 +208,7 @@ Generated models arrive at about 2 million triangles and scans at tens of thousa
 - Downmix stereo sound to mono with an explicit `pan=mono|c0=0.5*c0+0.5*c1`, since ffmpeg's `-ac 1` makes correlated stereo about 3 dB hotter, and give clips under 3 s a constant gain capped by true peak, since `loudnorm` overshoots them. ([calibration 4](calibration/2026-11-06-video2game/README.md))
 - Remove test and unused assets from the build; Sumiro shipped a 14 MB test model. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
 - Add touch controls and test on a phone. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
+- For a private phone preview on Vercel's hobby plan, deploy without `--prod`: deployment URLs sit behind Vercel sign-in, but the first `vercel deploy` of a new project becomes its production deployment and gets a public `<project>-<word>.vercel.app` alias. Check every URL the deploy prints with `curl -w "%{http_code}"` (a 302 is protected, a 200 is public), remove a public alias with `vercel alias rm`, and check the page through `vercel curl --deployment <url>`. ([Lamplighter](https://github.com/imDev2023/lamplighter), 2026-11-09)
 - Prefer CC0 assets, keep CC-BY credits in `CREDITS.md`, and check each generator's commercial terms. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md), [Claude Code + Blender](sources/2026-11-04-lummox-claude-code-blender.md))
 - Never pay out on a score the browser reports; verify it on a server. ([Sumiro](sources/2026-11-04-xikhar-sumiro.md))
 - Upload nothing without a passing smoke test, ship the exact package that was tested rather than a rebuild, and keep video masters out of git. ([VGD packs](sources/2026-11-06-chongdashu-aioriented-vgd.md))
