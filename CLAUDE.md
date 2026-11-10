@@ -24,9 +24,8 @@ The owner collects ideas here for building games, specifically blockchain games:
   Templates: [one prop](calibration/2026-11-06-crate-bridge/README.md), [a set of props](calibration/2026-11-06-kit/README.md) and [a whole game](calibration/2026-11-06-video2game/README.md); the Three.js check page is `calibration/2026-11-05-crate/viewer.html?src=<glb>`, with `src` repeated for a lineup.
 - Dockstack's code now lives in `../dockstack` (github.com/imDev2023/dockstack), which deploys dockstack.vercel.app; make game changes there and follow its CLAUDE.md.
   `calibration/2026-11-06-video2game/game/` is the frozen calibration record: never run its `deploy.sh --prod`, since that would put the older game over the live one.
-- Brimful (#8), started on 2026-11-10, is the 3D platformer made the way Sumiro was, never a copy of Sumiro's: a clay golem climbs a dry aqueduct city and fills it with water on the way up.
-  The owner chose it, Unity desktop (Unity 6.6, now installed) and about 10 USD of generation up to a playable prototype on 2026-11-10.
-  It lives in `../brimful` (github.com/imDev2023/brimful): make game changes there and follow its CLAUDE.md.
+- Brimful (#8) is the 3D platformer made the way Sumiro was, never a copy of Sumiro's: a young woman, an apprentice sluice-keeper, climbs a dry aqueduct city and fills it with water on the way up, in Unity for the desktop, with about 10 USD of generation planned up to a prototype (owner, 2026-11-10).
+  It lives in `../brimful` (github.com/imDev2023/brimful): start game sessions there, where Unity's agent plugin loads, and follow its CLAUDE.md.
 - Lamplighter (#7), the character runner the owner chose on 2026-11-08, was paused on 2026-11-10 for #8; it lives in `../lamplighter` (github.com/imDev2023/lamplighter), so make any changes there and follow its CLAUDE.md.
   Sample 5 did not pass: its catwalk ends hang over the alleys like black steps and the right roof slope is still near black (see #7's last comment). No game code until the owner approves the samples.
 - Lantern River (#6, closed as replaced) stays in `../lantern-river` as the source of the rules, chunk generator, replay check and test pilot that Lamplighter will reuse; its live link still shows the grey-box.
