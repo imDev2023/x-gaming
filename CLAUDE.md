@@ -24,8 +24,10 @@ The owner collects ideas here for building games, specifically blockchain games:
   Templates: [one prop](calibration/2026-11-06-crate-bridge/README.md), [a set of props](calibration/2026-11-06-kit/README.md) and [a whole game](calibration/2026-11-06-video2game/README.md); the Three.js check page is `calibration/2026-11-05-crate/viewer.html?src=<glb>`, with `src` repeated for a lineup.
 - Dockstack's code now lives in `../dockstack` (github.com/imDev2023/dockstack), which deploys dockstack.vercel.app; make game changes there and follow its CLAUDE.md.
   `calibration/2026-11-06-video2game/game/` is the frozen calibration record: never run its `deploy.sh --prod`, since that would put the older game over the live one.
-- Lamplighter (#7), the character runner the owner chose on 2026-11-08 to replace Lantern River, lives in `../lamplighter` (github.com/imDev2023/lamplighter); make its changes there and follow its CLAUDE.md.
-  Its samples are done in both styles; the owner sent sample 4 back on 2026-11-09, and sample 5 (the owner's fixes, a CC0 retargeted sprint and a look pass, with a phone preview behind Vercel sign-in) waits for their verdict on #7. No game code until the owner approves the samples, judged against Kensei's example.
+- The next game (#8), asked for on 2026-11-10, is made the way Sumiro was: a 3D platformer with our own world, hero and levels, never a copy of Sumiro's.
+  It starts in a fresh session with #8's open questions; the owner picked Unity desktop, but that question was asked with Kensei's Unity game in mind, so confirm the engine first (Unity is not installed on this Mac).
+- Lamplighter (#7), the character runner the owner chose on 2026-11-08, was paused on 2026-11-10 for #8; it lives in `../lamplighter` (github.com/imDev2023/lamplighter), so make any changes there and follow its CLAUDE.md.
+  Sample 5 did not pass: its catwalk ends hang over the alleys like black steps and the right roof slope is still near black (see #7's last comment). No game code until the owner approves the samples.
 - Lantern River (#6, closed as replaced) stays in `../lantern-river` as the source of the rules, chunk generator, replay check and test pilot that Lamplighter will reuse; its live link still shows the grey-box.
 - Each calibration's `raw/` folder is gitignored and holds the only copy of its paid fal outputs and full-length takes; never delete it.
 - The Video2Game skill is not installed: calibration 4 ran it from a clone of `lovisdotio/video-to-game` at `d1a24fd`, so reinstall or reclone it before another game run.
